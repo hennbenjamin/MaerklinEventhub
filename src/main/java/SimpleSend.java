@@ -39,21 +39,19 @@ public class SimpleSend {
 
 
         try {
-            for (int i = 0; i < 10; i++) {
-
-                String payload = "Message " + Integer.toString(i);
-                byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
-                EventData sendEvent = EventData.create(payloadBytes);
+            for (int  i= 0; i<TcpConnection.getMessages_Sand().size();i++){
+                String s =  TcpConnection.getMessages_Sand().get(i).toString();
+                byte[] sbyte = gson.toJson(s).getBytes(Charset.defaultCharset());
+                EventData sendEvent = EventData.create(sbyte);
 
                 // Send - not tied to any partition
                 // Event Hubs service will round-robin the events across all Event Hubs partitions.
                 // This is the recommended & most reliable way to send to Event Hubs.
                 ehClient.sendSync(sendEvent);
-            }
 
-            System.out.println(Instant.now() + ": Send Complete...");
-            System.out.println("Press Enter to stop.");
-            System.in.read();
+
+            System.out.println(Instant.now() + ": Nachricht vollständig gesendet...");
+            System.in.read();}
         } finally {
             ehClient.closeSync();
             executorService.shutdown();
