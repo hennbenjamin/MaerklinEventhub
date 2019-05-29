@@ -1,7 +1,7 @@
 import java.io.IOException;
 import java.text.ParseException;
 
-public class EncodeCan implements Runnable {
+public class EncodeCan extends Thread {
 
 	
 	/***************************************************************************************
@@ -13,9 +13,9 @@ public class EncodeCan implements Runnable {
 
 	@Override
 	public void run() {
-		TcpConnection tcp = new TcpConnection("192.168.0.2",15731); 
+		GetCan gc = new GetCan("192.168.0.2",15731);
 		try {
-			tcp.conn();
+			gc.conn();
 		} catch (IOException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

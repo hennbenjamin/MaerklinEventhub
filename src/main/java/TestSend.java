@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
  *
  */
 
-public class TestSend implements Runnable{
+public class TestSend extends Thread{
 
 	private byte[] udpFrame= new byte[13];
 	private byte[] header = new byte[5];
@@ -74,7 +74,7 @@ public class TestSend implements Runnable{
 	 * @return udpFrame
 	 * send stop to all
 	 */
-	public byte[] stop() {
+	public byte[] stopTrain() {
 		for (int i = 0; i < data.length; i++) {
 			udpFrame[5+i] = (byte)data[i];
 			

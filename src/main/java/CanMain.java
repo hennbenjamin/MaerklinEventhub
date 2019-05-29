@@ -16,7 +16,7 @@ import java.net.DatagramSocket;
 import java.net.Socket;
 
 
-public class CanMain implements Runnable{
+public class CanMain {
 
 	private static DatagramSocket dms;
 	private static TestSend send;
@@ -29,11 +29,10 @@ public class CanMain implements Runnable{
 		String ipAdress = "192.168.0.2";
 		
 		EncodeCan ec = new EncodeCan();
-		
-		Thread getCan = new Thread(ec, "first");
-		getCan.start();
-		ec.run();
-		
+
+		ec.start();
+
+
 //		SendCan udp = new SendCan();				
 		
 		
@@ -42,11 +41,10 @@ public class CanMain implements Runnable{
 		//Thread sendCan = new Thread(CanMain, "Thread1");
 		//myThread.start();
 		send = new TestSend();
-		Thread sendCan = new Thread(send, "second");
-		sendCan.start();
 		sendCanToCS3(ipAdress);
-		sendCan.run();
-		
+		send.start();
+
+
 		
 		
 	//	pingHost(addresse);
@@ -116,7 +114,7 @@ public class CanMain implements Runnable{
 	 ***************************************************************************************/
 	public static void sendCanToCS3 (String ipAdress) throws UnknownHostException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
-		SendCan udp = new SendCan();				
+		SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
 		
 		byte[] udpFrame = new byte[13];
@@ -136,7 +134,7 @@ public class CanMain implements Runnable{
 		
 		int cargoId = 0x4007;
 
-		udpFrame = send.stop();
+		udpFrame = send.go();
 		
 //		udpFrame = send.stopAll();
 //		sendTCP(udpFrame, 0, udpFrame.length);
@@ -258,11 +256,7 @@ public class CanMain implements Runnable{
 			e.printStackTrace();
 		}
 	}
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
-	}
+
 		
 	
 	

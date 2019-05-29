@@ -12,7 +12,7 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.time.format.*;
 
-public class TcpConnection {
+public class GetCan {
 
 	//private Socket tcp_socket;
 	private Socket tcp_socket = null;
@@ -20,7 +20,7 @@ public class TcpConnection {
 	private int port; 
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	
-	public TcpConnection(String ip, int port) {
+	public GetCan(String ip, int port) {
 		setIp(ip);
 		setPort(port);	
 	}
