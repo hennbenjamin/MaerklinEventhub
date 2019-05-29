@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.*;
 import javax.swing.text.MaskFormatter;
@@ -13,28 +12,28 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.time.format.*;
 
-public class TcpConnection extends Thread {
+public class TcpConnection {
 
 	//private Socket tcp_socket;
 	private Socket tcp_socket = null;
 	private String ip; 
 	private int port; 
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	public ArrayList<String> Messages_Sand = new ArrayList<String>();
-	public ArrayList<String> Messages_Water = new ArrayList<String>();
-	public ArrayList<String> Messages_Oil = new ArrayList<String>();
-
-
-
+	
 	public TcpConnection(String ip, int port) {
 		setIp(ip);
 		setPort(port);	
 	}
-	public static ArrayList<String> getMessages_Sand(){
-
-		return this.Messages_Sand;
-	}
-		
+	
+//	public void run() {
+//		try {
+//			conn();
+//		} catch (IOException | ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
+//	
 	public void conn() throws IOException, ParseException
 	{
 		System.out.println("connection to: " +ip+ " port: " + port);
@@ -53,6 +52,7 @@ public class TcpConnection extends Thread {
 			tcp_inputStream.read(bytes);
 			byte test = (byte)tcp_socket.getInputStream().read();
 			System.out.println("Test: " + test);
+			System.out.println("rowCount;datetime;lokid;stream;");
 			
 		} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -90,23 +90,22 @@ public class TcpConnection extends Thread {
 			StringBuilder water = new StringBuilder();
 			//         [00000F72:0][50,00,00,00,00,00,00,00,000]
 			water.append("[000e0f72:7][00,00,40,07,04,ed,04,00]");
+			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
-				System.out.println(sdf.format(date) + " " + rowCount + ": \t" + hexFormatted + "\t\tWATER!!!!");
+				String lokId = hexFormatted.substring(20 , 25).replace(",","");
+				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + hexFormatted + "\t\tWATER!!!!");				
 				rowCount++;
 			}
 			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,08,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
-				System.out.println(sdf.format(date) + " " + rowCount + ": \t" + hexFormatted + "\t\tOIL!!!!");
+				String lokId = hexFormatted.substring(20 , 25).replace(",","");
+				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + hexFormatted + "\t\tOIL!!!!");
 				rowCount++;
 			}
 			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,0C,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
-				System.out.println(sdf.format(date) + " " + rowCount + ": \t" + hexFormatted + "\t\tSAND!!!!");
-				String s = hexFormatted;
-				int decimal_sand = Integer.parseInt(s);
-
-				this.Messages_Sand.add(s);
-
+				String lokId = hexFormatted.substring(20 , 25).replace(",","");
+				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + hexFormatted + "\t\tSAND!!!!");
 				rowCount++;
 			}
 			//System.out.println("sb: \t" + sb);			

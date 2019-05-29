@@ -16,23 +16,38 @@ import java.net.DatagramSocket;
 import java.net.Socket;
 
 
-public class CanMain {
+public class CanMain implements Runnable{
 
 	private static DatagramSocket dms;
+	private static TestSend send;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		
 //		InetSocketAddress endpoint = new InetSocketAddress(ip,port);
 //		clientConn.connect(endpoint);
 //		InetAddress addresse = InetAddress.getByName(ipAdress);
+		String ipAdress = "192.168.0.2";
 		
 		EncodeCan ec = new EncodeCan();
-		EncodeCan.getData();
+		
+		Thread getCan = new Thread(ec, "first");
+		getCan.start();
+		ec.run();
 		
 //		SendCan udp = new SendCan();				
-//		String ipAdress = "192.168.0.2";
-//		
-//		sendCanToCS3(ipAdress);
+		
+		
+		
+		
+		//Thread sendCan = new Thread(CanMain, "Thread1");
+		//myThread.start();
+		send = new TestSend();
+		Thread sendCan = new Thread(send, "second");
+		sendCan.start();
+		sendCanToCS3(ipAdress);
+		sendCan.run();
+		
+		
 		
 	//	pingHost(addresse);
 		
@@ -48,12 +63,12 @@ public class CanMain {
 //		int[] testFrame = new int[13];
 //		
 //		TestSend send = new TestSend();
-		
-		//udpFrame = send.setSpeed(150);
+//		
+//		udpFrame = send.getSpeed();
 		//udpFrame = send.go();
 		//udpFrame = send.setSpeed(60);
 		//udpFrame = send.stopAll();
-		//sendTCP(udpFrame, 0, udpFrame.length);
+//		sendTCP(udpFrame, 0, udpFrame.length);
 		
 		//udpFrame = send.setDirection(3);
 		//sendTCP(udpFrame, 0, udpFrame.length);
@@ -107,17 +122,21 @@ public class CanMain {
 		byte[] udpFrame = new byte[13];
 		char[] data = new char[8];
 		int uid = 6168;
-		char response = 0; 
+		char response = 1; 
 		char command = 0; 
 		char prio = 0; 
-		char dlc = 5; 
+		char dlc = 6; 
 		int[] testFrame = new int[13];
 		
-		TestSend send = new TestSend();
+//		TestSend send = new TestSend();
+//		
+//		Thread sendCan = new Thread(send, "second");
+//		
 		
-		int cargoId = 0x4006;
+		
+		int cargoId = 0x4007;
 
-		udpFrame = send.setSpeed(50);
+		udpFrame = send.stop();
 		
 //		udpFrame = send.stopAll();
 //		sendTCP(udpFrame, 0, udpFrame.length);
@@ -238,6 +257,11 @@ public class CanMain {
 			// TODO Auto-generated catch block 
 			e.printStackTrace();
 		}
+	}
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
 	}
 		
 	

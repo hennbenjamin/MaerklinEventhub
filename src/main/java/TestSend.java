@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
  *
  */
 
-public class TestSend {
+public class TestSend implements Runnable{
 
 	private byte[] udpFrame= new byte[13];
 	private byte[] header = new byte[5];
@@ -21,6 +21,8 @@ public class TestSend {
 	private char hash = 0;
 	int cargoId = 0x4006;
 	int steamId = 0x4007;
+	
+
 	
 	/**
 	 * DEFAULT
@@ -328,10 +330,10 @@ public class TestSend {
 		for (int i = 0; i < data.length; i++) {
 					
 			if (i == 2) {
-				udpFrame[5+i] = (byte)getFirstByteOfId(cargoId);
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
 			}
 			if (i == 3) {
-				udpFrame[5+i] = (byte)getSecondByteOfId(cargoId);
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
 			}
 			if (i == 4 && hexData.length == 2) {
 				udpFrame[5+i] = hexData[1];		
@@ -343,6 +345,51 @@ public class TestSend {
 		}
 		return udpFrame;	
 	}
+	
+	/**
+	 * //@param speed
+	 * @return udpFrame
+	 * The MAX SPEEED 1023!!!
+	 * DLC HAS TO BE 4 to get THE SPEED Otherwise you can't set the SPEED, defined by Maerklin
+	 */
+	public byte[] getSpeed () {
+		
+		//dlc = 4 mandatory to get the speed!
+		dlc = 4;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 8;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 114;
+		udpFrame[4] = (byte) dlc;
+			
+		//String s = intToHex(speed);
+		//System.out.println("hexString :" + s);
+		//byte[] hexData = hexStringToByteArray(s);
+		for (int i = 0; i < data.length; i++) {
+			udpFrame[5+i] = (byte)data[i];
+		}
+		
+		for (int i = 0; i < data.length; i++) {
+					
+			if (i == 2) {
+				udpFrame[5+i] = (byte)getFirstByteOfId(cargoId);
+			}
+			if (i == 3) {
+				udpFrame[5+i] = (byte)getSecondByteOfId(cargoId);
+			}
+//			if (i == 4 && hexData.length == 2) {
+//				udpFrame[5+i] = hexData[1];		
+//			} 
+//			if (i == 5) {
+//				udpFrame[5+i] = hexData[0];
+//			}
+
+		}
+		return udpFrame;	
+	}
+	
+	
 	
 	/**
 	 * @param direction
@@ -463,6 +510,12 @@ public class TestSend {
 		int res = ((id << 28)>> 28);
 		System.out.println("SecondByte: " + res);
 		return res; 
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }
