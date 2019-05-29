@@ -114,7 +114,7 @@ public class CanMain {
 	 ***************************************************************************************/
 	public static void sendCanToCS3 (String ipAdress) throws UnknownHostException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
-		SendCan udp = new SendCan();
+		//SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
 		
 		byte[] udpFrame = new byte[13];
@@ -162,7 +162,7 @@ public class CanMain {
 	/**************************************************************************************
 	 * CONSTRUCT CAN MESSAGE
 	 ***************************************************************************************/
-	public static byte[] constructCan (SendCan udp, byte[] udpFrame, char[] data, int uid, char response, char command, char prio, char dlc) {
+	/*public static byte[] constructCan (SendCan udp, byte[] udpFrame, char[] data, int uid, char response, char command, char prio, char dlc) {
 		
 		//UDP FRAME HAS TO BE the length of 13
 		//6168 entspricht hexadezimal 0x1818 --> liegt damit im märklin definierten wertebereich für die UID 	
@@ -196,7 +196,7 @@ public class CanMain {
 		udpFr = udpFrame;
 		return udpFr;
 	}
-	
+	*/
 	/*************************************************************************************** 
 	 * PING HOST
 	 ***************************************************************************************/
