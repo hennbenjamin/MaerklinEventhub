@@ -1,19 +1,9 @@
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.util.concurrent.TimeUnit;
-
-//import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Socket;
+import java.net.*;
+
+//import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 
 public class CanMain {
@@ -27,7 +17,13 @@ public class CanMain {
 //		clientConn.connect(endpoint);
 //		InetAddress addresse = InetAddress.getByName(ipAdress);
 		String ipAdress = "192.168.0.2";
-		
+
+		/*//START USERINTERFACE
+		final UserInterfaceChart uic = new UserInterfaceChart();
+		uic.go();
+		*/
+
+
 		EncodeCan ec = new EncodeCan();
 
 		ec.start();
@@ -38,11 +34,12 @@ public class CanMain {
 		
 		
 		
-		//Thread sendCan = new Thread(CanMain, "Thread1");
-		//myThread.start();
-		send = new TestSend();
-		sendCanToCS3(ipAdress);
-		send.start();
+		////Thread sendCan = new Thread(CanMain, "Thread1");
+		////myThread.start();
+		//send = new TestSend();
+		//sendCanToCS3(ipAdress);
+
+		////send.start();
 
 
 		
@@ -134,7 +131,19 @@ public class CanMain {
 		
 		int cargoId = 0x4007;
 
-		udpFrame = send.go();
+		udpFrame = send.getWater();
+		System.out.println("udpLength: " + udpFrame.length);
+		sendTCP(udpFrame, 0, udpFrame.length);
+/*		while(true) {
+			udpFrame = send.getWater();
+			System.out.println("udpLength: " + udpFrame.length);
+			for (int i = 0; i < udpFrame.length; i++) {
+				System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
+			}
+
+			sendTCP(udpFrame, 0, udpFrame.length);
+		}*/
+
 		
 //		udpFrame = send.stopAll();
 //		sendTCP(udpFrame, 0, udpFrame.length);
@@ -147,13 +156,15 @@ public class CanMain {
 //		udpFrame = send.setSpeed(80);
 //		sendTCP(udpFrame, 0, udpFrame.length);
 //		TimeUnit.SECONDS.sleep(1);
-		
+
 		System.out.println("udpLength: " + udpFrame.length);
 		for (int i = 0; i < udpFrame.length; i++) {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 		}
 		
 		sendTCP(udpFrame, 0, udpFrame.length);
+
+
 		//TimeUnit.SECONDS.sleep(1);
 	}
 	

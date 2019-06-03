@@ -1,3 +1,4 @@
+import javax.swing.text.MaskFormatter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -5,12 +6,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.regex.*;
-import javax.swing.text.MaskFormatter;
-import java.util.Date;
 import java.text.SimpleDateFormat;
-import java.time.format.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.regex.Pattern;
 
 public class GetCan {
 
@@ -19,6 +18,12 @@ public class GetCan {
 	private String ip; 
 	private int port; 
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+	public int getRoundCount() {
+		return RoundCount;
+	}
+
+	private int RoundCount = 0;
 	
 	public GetCan(String ip, int port) {
 		setIp(ip);
@@ -63,7 +68,8 @@ public class GetCan {
 			e1.printStackTrace();
 		}	
 		
-		int rowCount = 0;		
+		int rowCount = 0;
+		int roundCounter = 0;
 		while(tcp_socket.isConnected()) {
 			
 			//StringBuilder sbByte = new StringBuilder();
@@ -107,6 +113,15 @@ public class GetCan {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + hexFormatted + "\t\tSAND!!!!");
 				rowCount++;
+			}
+
+			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
+			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,0C,[A-F0-9]{2}.)", hexFormatted)) {
+				//String lokId = hexFormatted.substring(20 , 25).replace(",","");
+				rowCount++;
+				RoundCount++;
+				System.out.println(rowCount + ";" + hexFormatted + "\t\tRound:" + RoundCount);
+
 			}
 			//System.out.println("sb: \t" + sb);			
 			//else {

@@ -1,5 +1,3 @@
-import java.nio.ByteBuffer;
-
 /**
  * @author Cornelius Specht
  *
@@ -388,7 +386,49 @@ public class TestSend extends Thread{
 		}
 		return udpFrame;	
 	}
-	
+
+
+	public byte[] getWater () {
+		dlc = 6;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 15;
+		udpFrame[2] = (byte) 160; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 1798;
+		udpFrame[4] = (byte) dlc;
+	/*
+		dlc = 6;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 7;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 114;
+		udpFrame[4] = (byte) dlc;
+	*/
+		//String s = intToHex(speed);
+		//System.out.println("hexString :" + s);
+		//byte[] hexData = hexStringToByteArray(s);
+		for (int i = 0; i < data.length; i++) {
+			udpFrame[5+i] = (byte)data[i];
+		}
+
+		for (int i = 0; i < data.length; i++) {
+
+			if (i == 2) {
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
+			}
+			if (i == 3) {
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
+			}
+			if (i == 4) {
+				udpFrame[5+i] = (byte)12;
+			}
+			if (i == 5) {
+				udpFrame[5+i] = (byte)237;
+			}
+		}
+		return udpFrame;
+	}
 	
 	
 	/**
