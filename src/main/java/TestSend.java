@@ -389,11 +389,11 @@ public class TestSend extends Thread{
 
 
 	public byte[] getWater () {
-		dlc = 6;
+		dlc = 7;
 		data = new char[dlc];
 		udpFrame[0] = (byte) prio ;
-		udpFrame[1] = (byte) 15;
-		udpFrame[2] = (byte) 160; // >> 8;//(uid >> 8);
+		udpFrame[1] = (byte) 14;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8); 160
 		udpFrame[3] = (byte) 1798;
 		udpFrame[4] = (byte) dlc;
 	/*
@@ -421,10 +421,84 @@ public class TestSend extends Thread{
 				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
 			}
 			if (i == 4) {
-				udpFrame[5+i] = (byte)12;
+				udpFrame[5+i] = (byte)4;
 			}
 			if (i == 5) {
 				udpFrame[5+i] = (byte)237;
+			}
+			if (i == 6) {
+				udpFrame[5+i] = (byte)1;
+			}
+		}
+		return udpFrame;
+	}
+
+	public byte[] getSand () {
+		dlc = 7;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 14;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 1798;
+		udpFrame[4] = (byte) dlc;
+
+		for (int i = 0; i < data.length; i++) {
+			udpFrame[5+i] = (byte)data[i];
+		}
+
+		for (int i = 0; i < data.length; i++) {
+
+			if (i == 2) {
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
+			}
+			if (i == 3) {
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
+			}
+			if (i == 4) {
+				udpFrame[5+i] = (byte)12; //idx number
+			}
+			if (i == 5) {
+				udpFrame[5+i] = (byte)237;
+			}
+			if (i == 6) {
+				udpFrame[5+i] = (byte)1;
+			}
+		}
+		return udpFrame;
+	}
+
+	public byte[] getOil () {
+		dlc = 7;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 14;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 1798;
+		udpFrame[4] = (byte) dlc;
+
+		for (int i = 0; i < data.length; i++) {
+			udpFrame[5+i] = (byte)data[i];
+		}
+
+		for (int i = 0; i < data.length; i++) {
+
+			if (i == 2) {
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
+			}
+
+			if (i == 3) {
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
+			}
+
+			if (i == 4) {
+				udpFrame[5+i] = (byte)8;
+			}
+
+			if (i == 5) {
+				udpFrame[5+i] = (byte)237;
+			}
+			if (i == 6) {
+				udpFrame[5+i] = (byte)1;
 			}
 		}
 		return udpFrame;
@@ -455,8 +529,7 @@ public class TestSend extends Thread{
 			if (i == 4) {
 				udpFrame[5+i] = (byte)direction;
 			} 
-		}	
-		
+		}
 		return udpFrame; 
 	}
 	
@@ -537,7 +610,7 @@ public class TestSend extends Thread{
 	 */
 	public int getFirstByteOfId (int id) {
 		int res = (id >>> 8);
-		System.out.println("FirstByte: " + res);
+		//System.out.println("FirstByte: " + res);
 		return res;
 	} 
 	
@@ -548,7 +621,7 @@ public class TestSend extends Thread{
 	public int getSecondByteOfId (int id) {
 		//Shift the bits to the left and then shift it to the right to get the last 4 bit
 		int res = ((id << 28)>> 28);
-		System.out.println("SecondByte: " + res);
+		//System.out.println("SecondByte: " + res);
 		return res; 
 	}
 

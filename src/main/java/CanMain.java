@@ -2,6 +2,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.concurrent.TimeUnit;
 
 //import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
@@ -23,11 +24,10 @@ public class CanMain {
 		uic.go();
 		*/
 
-
+		//uncomment to get Data
 		EncodeCan ec = new EncodeCan();
-
+		//uncomment to get Data
 		ec.start();
-
 
 //		SendCan udp = new SendCan();				
 		
@@ -36,8 +36,12 @@ public class CanMain {
 		
 		////Thread sendCan = new Thread(CanMain, "Thread1");
 		////myThread.start();
-		//send = new TestSend();
-		//sendCanToCS3(ipAdress);
+		//uncomment to send Data
+		send = new TestSend();
+		//uncomment to send Data
+		sendCanToCS3(ipAdress);
+
+
 
 		////send.start();
 
@@ -130,10 +134,16 @@ public class CanMain {
 		
 		
 		int cargoId = 0x4007;
+		while (true) {
+			udpFrame = send.getWater();
+			sendTCP(udpFrame, 0, udpFrame.length);
 
-		udpFrame = send.getWater();
-		System.out.println("udpLength: " + udpFrame.length);
-		sendTCP(udpFrame, 0, udpFrame.length);
+			udpFrame = send.getOil();
+			sendTCP(udpFrame, 0, udpFrame.length);
+			udpFrame = send.getSand();
+			sendTCP(udpFrame, 0, udpFrame.length);
+			//System.out.println("udpLength: " + udpFrame.length);
+			sendTCP(udpFrame, 0, udpFrame.length);
 /*		while(true) {
 			udpFrame = send.getWater();
 			System.out.println("udpLength: " + udpFrame.length);
@@ -144,7 +154,7 @@ public class CanMain {
 			sendTCP(udpFrame, 0, udpFrame.length);
 		}*/
 
-		
+
 //		udpFrame = send.stopAll();
 //		sendTCP(udpFrame, 0, udpFrame.length);
 //		TimeUnit.SECONDS.sleep(1);
@@ -157,14 +167,20 @@ public class CanMain {
 //		sendTCP(udpFrame, 0, udpFrame.length);
 //		TimeUnit.SECONDS.sleep(1);
 
-		System.out.println("udpLength: " + udpFrame.length);
+			/////////////////DEBUG PRINT UDP-Package/////////////////
+	/*	System.out.println("udpLength: " + udpFrame.length);
 		for (int i = 0; i < udpFrame.length; i++) {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
+		}*/
+
+			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
 		}
-		
-		sendTCP(udpFrame, 0, udpFrame.length);
-
-
 		//TimeUnit.SECONDS.sleep(1);
 	}
 	

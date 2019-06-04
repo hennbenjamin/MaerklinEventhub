@@ -91,7 +91,7 @@ public class GetCan {
 //			}
 						
 			String hexFormatted = mf2.valueToString(hexNr);
-			//System.out.println("HEXFORMATTED: " + hexFormatted);
+			System.out.println("HEXFORMATTED: " + hexFormatted);
 			 //99m 11µ>[00000f72:5]       0 [00,00,00,00,00]          
 			StringBuilder water = new StringBuilder();
 			//         [00000F72:0][50,00,00,00,00,00,00,00,000]
@@ -116,7 +116,7 @@ public class GetCan {
 			}
 
 			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
-			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,0C,[A-F0-9]{2}.)", hexFormatted)) {
+			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				//String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				rowCount++;
 				RoundCount++;
