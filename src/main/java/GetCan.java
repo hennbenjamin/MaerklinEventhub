@@ -30,16 +30,8 @@ public class GetCan {
 		setIp(ip);
 		setPort(port);	
 	}
-	
-//	public void run() {
-//		try {
-//			conn();
-//		} catch (IOException | ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-//	
+
+
 	public void conn() throws IOException, ParseException
 	{
 		System.out.println("connection to: " +ip+ " port: " + port);
@@ -71,6 +63,7 @@ public class GetCan {
 		
 		int rowCount = 0;
 
+
 		while(tcp_socket.isConnected()) {
 			
 			//StringBuilder sbByte = new StringBuilder();
@@ -96,36 +89,50 @@ public class GetCan {
 			 //99m 11µ>[00000f72:5]       0 [00,00,00,00,00]          
 			StringBuilder water = new StringBuilder();
 			//         [00000F72:0][50,00,00,00,00,00,00,00,000]
+
+
 			water.append("[000e0f72:7][00,00,40,07,04,ed,04,00]");
 			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
-				String lokId = hexFormatted.substring(20 , 25).replace(",","");
-				String Res = hexFormatted.substring(32,34);
-				/////////////////DEBUG////// ADD hexFormatted
-				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res +";"+RoundCount+";");
-				rowCount++;
+				if(!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,04,[A-F0-9]{2}.)", hexFormatted)) {
+					String lokId = hexFormatted.substring(20, 25).replace(",", "");
+					//String Res = hexFormatted.substring(32, 34);
+					int Res = data[10];
+					if(Res < 0)
+						Res += 256;
+					/////////////////DEBUG////// ADD hexFormatted
+					//System.out.println(hexFormatted);
+					System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";");
+					rowCount++;
+				}
 			}
 			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,08,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
-				String Res = hexFormatted.substring(32,34);
-				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil"+ ";" + Res +";" + RoundCount + ";");
+				//String Res = hexFormatted.substring(32,34);
+				int Res = data[10];
+				if(Res < 0)
+					Res += 256;
+				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil"+ ";" + Res +";" + (int) (Res*11.7647) + ";" + RoundCount + ";");
 				rowCount++;
 			}
 			
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,0C,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
-				String Res = hexFormatted.substring(32,34);
-				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand"+ ";" + Res + ";" + RoundCount +";");
+				//String Res = hexFormatted.substring(32,34);
+				int Res = data[10];
+				if(Res < 0)
+					Res += 256;
+				System.out.println(rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand"+ ";" + Res + ";" + (int) (Res*0.9803) + ";" + RoundCount +";");
 				rowCount++;
 			}
 
 			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
-				//String lokId = hexFormatted.substring(20 , 25).replace(",","");
+				String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				rowCount++;
 				RoundCount++;
-				System.out.println(rowCount + ";" + hexFormatted + "\t\tRound:" + RoundCount);
+				System.out.println(rowCount + ";" + "\t\tRound:" + RoundCount);
 
 			}
 			//System.out.println("sb: \t" + sb);			
@@ -135,7 +142,8 @@ public class GetCan {
 		}
 		closeConn(); 
 	}
-	
+
+
 	//have Data Container where Data is separated into metadata and data 
 	private HashMap<String,String> translateToHashMap (String hex) {
 		HashMap<String, String> map = new HashMap<String, String>();

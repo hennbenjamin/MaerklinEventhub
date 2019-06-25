@@ -123,8 +123,13 @@ public class CanMain {
 			sendTCP(udpFrame, 0, udpFrame.length);
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			//System.out.println("udpLength: " + udpFrame.length);
-			sendTCP(udpFrame, 0, udpFrame.length);
+			//sendTCP(udpFrame, 0, udpFrame.length);
 /*		while(true) {
 			udpFrame = send.getWater();
 			System.out.println("udpLength: " + udpFrame.length);
@@ -154,12 +159,12 @@ public class CanMain {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 		}*/
 
-			sendTCP(udpFrame, 0, udpFrame.length);
-			try {
+			//sendTCP(udpFrame, 0, udpFrame.length);
+			/*try {
 				TimeUnit.SECONDS.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
+			}*/
 
 		}
 		//TimeUnit.SECONDS.sleep(1);
