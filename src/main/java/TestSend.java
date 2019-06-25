@@ -89,6 +89,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * send stop command to the train id
 	 */
@@ -122,6 +123,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * send horn on at train id 
 	 */
@@ -159,6 +161,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * send horn off to a train ID
 	 */
@@ -195,6 +198,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * Send Light On to a train Id
 	 */
@@ -230,7 +234,8 @@ public class TestSend extends Thread{
 	}
 	
 	/**
-	 * @param id 
+	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * Send Light off to a TrainID
 	 */
@@ -282,6 +287,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param id
+	 * id of the train
 	 * @return udpFrame
 	 * Give a go for the provided train ID
 	 */
@@ -303,6 +309,7 @@ public class TestSend extends Thread{
 
 	/**
 	 * @param speed
+	 * The speed that we want to set up
 	 * @return udpFrame
 	 * The MAX SPEEED 1023!!!
 	 * DLC HAS TO BE 6 to SET THE SPEED Otherwise you can't set the SPEED, defined by Maerklin
@@ -321,6 +328,7 @@ public class TestSend extends Thread{
 		String s = intToHex(speed);
 		System.out.println("hexString :" + s);
 		byte[] hexData = hexStringToByteArray(s);
+
 		for (int i = 0; i < data.length; i++) {
 			udpFrame[5+i] = (byte)data[i];
 		}
@@ -345,7 +353,6 @@ public class TestSend extends Thread{
 	}
 	
 	/**
-	 * //@param speed
 	 * @return udpFrame
 	 * The MAX SPEEED 1023!!!
 	 * DLC HAS TO BE 4 to get THE SPEED Otherwise you can't set the SPEED, defined by Maerklin
@@ -507,6 +514,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param direction
+	 * sets the direction of the train based on the documentation rules
 	 * @return udpFrame
 	 * DLC HAS TO BE 5 TO SET THE DIRECTION (Maerklin) 
 	 * DLC HAS TO BE 4 TO GET THE DIRECTION (Maerklin) 
@@ -535,6 +543,7 @@ public class TestSend extends Thread{
 	
 	/**
 	 * @param value
+	 * the value that we will convert
 	 * @return hex String
 	 * Transform an Integer Value into an HEX Value
 	 */
@@ -554,6 +563,7 @@ public class TestSend extends Thread{
 
 	/**
 	 * @param s
+	 * The string that we will transform into ByteArray
 	 * @return data
 	 * Get an Hex String and 
 	 */
@@ -566,46 +576,11 @@ public class TestSend extends Thread{
 	    }
 	    return data;
 	}
-	
-//	public boolean checkIntegerValue (int value) {
-//		if (value >= 512) {
-//			return true;
-//		}
-//		else {
-//			return false; 
-//		}
-//	}  
-//	
-//	public int getFirstBitOfSpeed (int speed) {
-//		
-//		String test = intToHex(speed);
-//		System.out.println(test);
-//		boolean ck = checkIntegerValue(speed);
-//		int res = 0; 
-//		if (ck == true) {
-//			res = (speed >>> 5); 
-//			Integer resulS = 0; 
-//			String stringR = resulS.toBinaryString(res); 
-//			System.out.println("1: " + stringR);
-//			return (speed >>> 5);
-//		}
-//		else {
-//			return 0;
-//		}
-//		
-//	}
-//	
-//	public int getSecondBitOfSpeed (int speed) {
-//		int mask = 0b0000011111; 
-//		int res = speed & mask;
-//		Integer resulS = 0; 
-//		String stringR = resulS.toBinaryString(res); 
-//		System.out.println("2: " + stringR);
-//		return res;
-//	}
+
 
 	/**
 	 * @param id
+	 *
 	 * @return result
 	 */
 	public int getFirstByteOfId (int id) {

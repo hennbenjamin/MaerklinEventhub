@@ -1,7 +1,9 @@
+import com.microsoft.azure.eventhubs.EventHubException;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 //import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
@@ -12,11 +14,8 @@ public class CanMain {
 	private static DatagramSocket dms;
 	private static TestSend send;
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-		
-//		InetSocketAddress endpoint = new InetSocketAddress(ip,port);
-//		clientConn.connect(endpoint);
-//		InetAddress addresse = InetAddress.getByName(ipAdress);
+	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
+
 		String ipAdress = "192.168.0.2";
 
 		/*//START USERINTERFACE
@@ -28,25 +27,13 @@ public class CanMain {
 		EncodeCan ec = new EncodeCan();
 		//uncomment to get Data
 		ec.start();
+		
 
-//		SendCan udp = new SendCan();				
-		
-		
-		
-		
-		////Thread sendCan = new Thread(CanMain, "Thread1");
-		////myThread.start();
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
 		sendCanToCS3(ipAdress);
 
-
-
-		////send.start();
-
-
-		
 		
 	//	pingHost(addresse);
 		
@@ -126,12 +113,6 @@ public class CanMain {
 		char prio = 0; 
 		char dlc = 6; 
 		int[] testFrame = new int[13];
-		
-//		TestSend send = new TestSend();
-//		
-//		Thread sendCan = new Thread(send, "second");
-//		
-		
 		
 		int cargoId = 0x4007;
 		while (true) {
