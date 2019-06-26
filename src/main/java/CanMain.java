@@ -41,8 +41,24 @@ public class CanMain {
 
 		//uncomment to get Data
 		//EncodeCan ec = new EncodeCan();
+		GetCan ec = new GetCan("192.168.0.2",15731);
 		//uncomment to get Data
-		//ec.start();
+		ec.start();
+		//for(int i = 0; i<5; i++) {
+			//uncomment to send Data
+			send = new TestSend();
+			//uncomment to send Data
+			sendCanToCS3(ipAdress);
+			System.out.println("");
+			String[] payloadb = new String[3];
+			String payload = "";
+			//for(int i = 0; i<3; i++){
+				payload = "payload: " + ec.getPayload();
+
+			//}
+			System.out.println(payload);
+		//}
+		ec.interrupt();
 
 		final Gson gson = new GsonBuilder().create();
 
@@ -58,7 +74,7 @@ public class CanMain {
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
 
 
-		try {
+		/*try {
 			for (int i = 0; i < 10; i++) {
 				EncodeCan ec = new EncodeCan();
 				ec.start();
@@ -77,12 +93,8 @@ public class CanMain {
 		} finally {
 			ehClient.closeSync();
 			executorService.shutdown();
-		}
+		}*/
 
-		//uncomment to send Data
-		send = new TestSend();
-		//uncomment to send Data
-		sendCanToCS3(ipAdress);
 
 		
 	//	pingHost(addresse);
@@ -165,7 +177,7 @@ public class CanMain {
 		int[] testFrame = new int[13];
 		
 		int cargoId = 0x4007;
-		while (true) {
+		//for (int i = 0; i<10; i++) {
 			udpFrame = send.getWater();
 			sendTCP(udpFrame, 0, udpFrame.length);
 
@@ -174,7 +186,7 @@ public class CanMain {
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
 			try {
-				TimeUnit.SECONDS.sleep(1);
+				TimeUnit.SECONDS.sleep(2);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -216,8 +228,7 @@ public class CanMain {
 				e.printStackTrace();
 			}*/
 
-		}
-		//TimeUnit.SECONDS.sleep(1);
+		//}
 	}
 	
 	
