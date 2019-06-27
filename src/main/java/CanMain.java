@@ -184,26 +184,35 @@ public class CanMain {
 			//ask status of water
 			udpFrame = send.getWater();
 			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			//ask status of oil
 			udpFrame = send.getOil();
 			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			//ask status of sand
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
-
 			try {
-				TimeUnit.SECONDS.sleep(3);
+				TimeUnit.SECONDS.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 
 			/////////////////DEBUG PRINT UDP-Package/////////////////
-	/*	System.out.println("udpLength: " + udpFrame.length);
+/*		System.out.println("udpLength: " + udpFrame.length);
 		for (int i = 0; i < udpFrame.length; i++) {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-		}*/
+}*/
 
 		}
 	}
