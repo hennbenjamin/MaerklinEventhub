@@ -30,6 +30,8 @@ public class CanMain {
 
 		String ipAdress = "192.168.0.2";
 		Scanner in = new Scanner(System.in);
+		String payload = "";	//We will use this variable later to injest data into eventhub
+		int iterations;			//Number of iterations that we will perform on the resources status.
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
@@ -60,9 +62,7 @@ public class CanMain {
 		uic.go();
 		*/
 
-		//We will use this variable later to injest data into eventhub
-		String payload = "";
-		int iterations;	//Number of iterations that we will perform on the resources status.
+		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
 		System.out.print("How many iterations do you want to perform?");
 		iterations = in.nextInt();
 
@@ -98,9 +98,6 @@ public class CanMain {
 		}
 
 
-		
-	//	pingHost(addresse);
-		
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
 					
 //		byte[] udpFrame = new byte[13];
@@ -180,8 +177,7 @@ public class CanMain {
 		int cargoId = 0x4007;
 
 		//If the variable is setted up as -1, Max Limit = 500
-		if(iterations == -1)
-			iterations = 500;
+		if(iterations == -1) iterations = 500;
 
 		for (int i = 0; i<iterations; i++) {
 

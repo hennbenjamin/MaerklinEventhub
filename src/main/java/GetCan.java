@@ -29,8 +29,8 @@ public class GetCan extends Thread{
 	LinkedList<String> payload = new LinkedList<String>();
 
 	@Override
+	//Starts all the methods,
 	public void run() {
-		//GetCan gc = new GetCan("192.168.0.2",15731);
 		try {
 			this.conn();
 		} catch (IOException | ParseException e) {
@@ -39,17 +39,20 @@ public class GetCan extends Thread{
 		}
 	}
 
-	public int getRoundCount() {
-		return RoundCount;
-	}
-
-	
+	/**
+	 * @param ip ip address of the CS3
+	 * @param port port
+	 */
 	public GetCan(String ip, int port) {
 		setIp(ip);
 		setPort(port);	
 	}
 
-	//public void conn() throws IOException, ParseException
+	/**
+	 *
+	 * @throws IOException Input/Output exception
+	 * @throws ParseException Parsing exception
+	 */
 	public void conn() throws IOException, ParseException
 	{
 		System.out.println("connected to: " +ip+ " port: " + port);
@@ -83,6 +86,7 @@ public class GetCan extends Thread{
 		int rowCount = 0;
 		String result = "";
 
+		//While trigger is false, it keeps listening
 		while(stop == false) {
 
 			for (int i = 0; i < data.length; i++) {
