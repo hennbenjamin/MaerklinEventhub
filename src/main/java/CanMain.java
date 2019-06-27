@@ -10,12 +10,12 @@ import java.io.OutputStream;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-//import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 
 public class CanMain {
@@ -27,38 +27,13 @@ public class CanMain {
 	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
 
 		String ipAdress = "192.168.0.2";
+		Scanner in = new Scanner(System.in);
 
 		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
-				.setNamespaceName("speventhubns")
-				.setEventHubName("speventhub")
+				.setNamespaceName("BIAcademyNS")
+				.setEventHubName("eventhubmarklinlok")
 				.setSasKeyName("RootManageSharedAccessKey")
-				.setSasKey("2+WMsyyy1XmUtEnRsfOmTTyGasfJgsVjGAOIN20J1Y8=");
-
-		/*//START USERINTERFACE
-		final UserInterfaceChart uic = new UserInterfaceChart();
-		uic.go();
-		*/
-
-		//uncomment to get Data
-		//EncodeCan ec = new EncodeCan();
-		GetCan ec = new GetCan("192.168.0.2",15731);
-		//uncomment to get Data
-		ec.start();
-		//for(int i = 0; i<5; i++) {
-			//uncomment to send Data
-			send = new TestSend();
-			//uncomment to send Data
-			sendCanToCS3(ipAdress);
-			System.out.println("");
-			String[] payloadb = new String[3];
-			String payload = "";
-			//for(int i = 0; i<3; i++){
-				payload = "payload: " + ec.getPayload();
-
-			//}
-			System.out.println(payload);
-		//}
-		ec.interrupt();
+				.setSasKey("jiuer6fxPoEnrkrxzVwWVdRi1qw2+5A3rAoevEsiEVs=");
 
 		final Gson gson = new GsonBuilder().create();
 
@@ -73,12 +48,28 @@ public class CanMain {
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
 
+		/*//START USERINTERFACE
+		final UserInterfaceChart uic = new UserInterfaceChart();
+		uic.go();
+		*/
 
-		/*try {
-			for (int i = 0; i < 10; i++) {
-				EncodeCan ec = new EncodeCan();
-				ec.start();
-				String payload;
+		String payload = "";
+		GetCan ec = new GetCan("192.168.0.2",15731);
+		ec.start();
+
+		//uncomment to send Data
+		send = new TestSend();
+		//uncomment to send Data
+
+		int iterations = in.nextInt();
+		sendCanToCS3(ipAdress, iterations);
+		//use better method instead
+		ec.stop();
+
+		try {
+			for(int i = 0; i<ec.payload.size(); i++){
+				payload = ec.payload.get(i);
+				System.out.println(payload);
 				byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
 				EventData sendEvent = EventData.create(payloadBytes);
 
@@ -90,11 +81,10 @@ public class CanMain {
 			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
-		} finally {
+		}finally {
 			ehClient.closeSync();
 			executorService.shutdown();
-		}*/
-
+		}
 
 		
 	//	pingHost(addresse);
@@ -158,11 +148,13 @@ public class CanMain {
 		//UdpConnection udp = new UdpConnection();
 		//udp.run();
 	}
+
+
 	/**************************************************************************************
 	 * SEND CAN MESSAGE
 	 * @throws UnknownHostException 
 	 ***************************************************************************************/
-	public static void sendCanToCS3 (String ipAdress) throws UnknownHostException {
+	public static void sendCanToCS3 (String ipAdress, int iterations) throws UnknownHostException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
 		//SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
@@ -175,18 +167,27 @@ public class CanMain {
 		char prio = 0; 
 		char dlc = 6; 
 		int[] testFrame = new int[13];
-		
 		int cargoId = 0x4007;
-		//for (int i = 0; i<10; i++) {
+
+		if(iterations == -1)
+			iterations = 500;
+
+		for (int i = 0; i<iterations; i++) {
+
+			//ask for status of water
 			udpFrame = send.getWater();
 			sendTCP(udpFrame, 0, udpFrame.length);
 
+			//ask for status of oil
 			udpFrame = send.getOil();
 			sendTCP(udpFrame, 0, udpFrame.length);
+
+			//ask for status of sand
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
+
 			try {
-				TimeUnit.SECONDS.sleep(2);
+				TimeUnit.SECONDS.sleep(3);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -201,8 +202,6 @@ public class CanMain {
 
 			sendTCP(udpFrame, 0, udpFrame.length);
 		}*/
-
-
 //		udpFrame = send.stopAll();
 //		sendTCP(udpFrame, 0, udpFrame.length);
 //		TimeUnit.SECONDS.sleep(1);
@@ -221,18 +220,10 @@ public class CanMain {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 		}*/
 
-			//sendTCP(udpFrame, 0, udpFrame.length);
-			/*try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}*/
-
-		//}
+		}
 	}
 	
-	
-	
+
 	/**************************************************************************************
 	 * CONSTRUCT CAN MESSAGE
 	 ***************************************************************************************/
@@ -271,6 +262,8 @@ public class CanMain {
 		return udpFr;
 	}
 	*/
+
+
 	/*************************************************************************************** 
 	 * PING HOST
 	 ***************************************************************************************/
@@ -288,7 +281,8 @@ public class CanMain {
 		}
 		
 	}
-	
+
+
 	/*************************************************************************************** 
 	 * SEND UDP-FRAME via UDP to HOST 
 	 ***************************************************************************************/
@@ -305,7 +299,8 @@ public class CanMain {
 			e.printStackTrace();
 		}
 	}
-	
+
+
 	/*************************************************************************************** 
 	 * SEND TCP-FRAME via TCP to HOST 
 	 ***************************************************************************************/
@@ -331,9 +326,4 @@ public class CanMain {
 		}
 	}
 
-		
-	
-	
-	
-	
 }

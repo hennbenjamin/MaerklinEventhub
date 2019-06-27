@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,7 +24,7 @@ public class GetCan extends Thread{
 	private int port; 
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	private int RoundCount = 0;
-	String payload = "";
+	LinkedList<String> payload = new LinkedList<String>();
 
 	@Override
 	public void run() {
@@ -49,7 +50,7 @@ public class GetCan extends Thread{
 	//public void conn() throws IOException, ParseException
 	public void conn() throws IOException, ParseException
 	{
-		System.out.println("connection to: " +ip+ " port: " + port);
+		//System.out.println("connection to: " +ip+ " port: " + port);
 		
 		InetSocketAddress endpoint = new InetSocketAddress(ip,port);
 		
@@ -65,8 +66,8 @@ public class GetCan extends Thread{
 			tcp_inputStream = tcp_socket.getInputStream();
 			tcp_inputStream.read(bytes);
 			byte test = (byte)tcp_socket.getInputStream().read();
-			System.out.println("Test: " + test);
-			System.out.println("rowCount;datetime;lokid;ressource;value;RoundCount");
+			//System.out.println("Test: " + test);
+			System.out.println("rowCount;datetime;lokid;resource;value(in Java);value(in CS3);RoundCount");
 			
 		} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -123,9 +124,8 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
 					waterflag = true;
-					//setPayload(result);
-					payload = result;
-					System.out.println(result);
+					payload.add(result);
+					//System.out.println(result);
 					rowCount++;
 				}
 			}
@@ -141,9 +141,8 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
 					oilflag = true;
-					payload = result;
-					setPayload("/" + result);
-					System.out.println(result);
+					payload.add(result);
+					//System.out.println(result);
 					rowCount++;
 				}
 			}
@@ -158,21 +157,22 @@ public class GetCan extends Thread{
 
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
-					setPayload("/" + result);
-					System.out.println(result);
+					sandflag = true;
+					payload.add(result);
+					//System.out.println(result);
 					rowCount++;
 					//return result;
 				}
 			}
 
-			if()
+			//if()
 
 			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				rowCount++;
 				RoundCount++;
-				System.out.println(rowCount + ";" + "\t\tRound:" + RoundCount);
+				//System.out.println(rowCount + ";" + "\t\tRound:" + RoundCount);
 
 			}
 
@@ -182,16 +182,6 @@ public class GetCan extends Thread{
 			//}
 		}
 		closeConn(); 
-	}
-
-
-	public void setPayload(String payload){
-		this.payload = payload;
-	}
-
-
-	public String getPayload (){
-		return this.payload;
 	}
 
 
