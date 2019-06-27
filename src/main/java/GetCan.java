@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -24,6 +25,7 @@ public class GetCan extends Thread{
 	private int port; 
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	private int RoundCount = 0;
+	boolean stop = false;
 	LinkedList<String> payload = new LinkedList<String>();
 
 	@Override
@@ -50,14 +52,14 @@ public class GetCan extends Thread{
 	//public void conn() throws IOException, ParseException
 	public void conn() throws IOException, ParseException
 	{
-		//System.out.println("connection to: " +ip+ " port: " + port);
+		System.out.println("connected to: " +ip+ " port: " + port);
 		
 		InetSocketAddress endpoint = new InetSocketAddress(ip,port);
 		
 		byte[] bytes = new byte[13];
 		byte[] data = new byte[13];
 
-		InputStream tcp_inputStream = null; 
+		InputStream tcp_inputStream;
 		
 		try {
 			tcp_socket = new Socket();
@@ -67,7 +69,7 @@ public class GetCan extends Thread{
 			tcp_inputStream.read(bytes);
 			byte test = (byte)tcp_socket.getInputStream().read();
 			//System.out.println("Test: " + test);
-			System.out.println("rowCount;datetime;lokid;resource;value(in Java);value(in CS3);RoundCount");
+			System.out.println("RowCount;Datetime;Lokid;Resource;Value(in Java);Value(in CS3);RoundCount");
 			
 		} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -81,9 +83,8 @@ public class GetCan extends Thread{
 		int rowCount = 0;
 		String result = "";
 
-		while(tcp_socket.isConnected()) {
-			
-			//StringBuilder sbByte = new StringBuilder();
+		while(stop == false) {
+
 			for (int i = 0; i < data.length; i++) {
 				data[i] = (byte)tcp_socket.getInputStream().read();
 			}
@@ -92,7 +93,6 @@ public class GetCan extends Thread{
 			mf2.setValueContainsLiteralCharacters(false);
 			String hexNr = "00" + hexEncode(data);
 			Date date = new Date();
-		
 			
 			HashMap<String, String> dataMap = new HashMap();
 			dataMap = translateToHashMap(hexNr);
@@ -107,11 +107,9 @@ public class GetCan extends Thread{
 			StringBuilder water = new StringBuilder();
 			//         [00000F72:0][50,00,00,00,00,00,00,00,000]
 
-			boolean waterflag, oilflag, sandflag;
-
-
 			water.append("[000e0f72:7][00,00,40,07,04,ed,04,00]");
-			
+
+
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				if(!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,04,[A-F0-9]{2}.)", hexFormatted) &&
 						!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,01,[A-F0-9]{2}.)", hexFormatted)) {
@@ -123,9 +121,8 @@ public class GetCan extends Thread{
 					/////////////////DEBUG////// ADD hexFormatted
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
-					waterflag = true;
 					payload.add(result);
-					//System.out.println(result);
+					System.out.println(result);
 					rowCount++;
 				}
 			}
@@ -140,9 +137,8 @@ public class GetCan extends Thread{
 
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
-					oilflag = true;
 					payload.add(result);
-					//System.out.println(result);
+					System.out.println(result);
 					rowCount++;
 				}
 			}
@@ -157,11 +153,9 @@ public class GetCan extends Thread{
 
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
-					sandflag = true;
 					payload.add(result);
-					//System.out.println(result);
+					System.out.println(result);
 					rowCount++;
-					//return result;
 				}
 			}
 
@@ -184,8 +178,11 @@ public class GetCan extends Thread{
 		closeConn(); 
 	}
 
+	public void stopListener(){
+		stop = true;
+	}
 
-	//have Data Container where Data is separated into metadata and data 
+	//have Data Container where Data is separated into metadata and data
 	private HashMap<String,String> translateToHashMap (String hex) {
 		HashMap<String, String> map = new HashMap<String, String>();
 		String metaData = hex.substring(0,8);
@@ -209,15 +206,16 @@ public class GetCan extends Thread{
 	
 	//CLOSE CONNECTION TCP SOCKET
 	public void closeConn () {
-		
+
 		try {
+			tcp_socket.shutdownInput();
 			tcp_socket.close();
 			
 		} catch (IOException e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		
+
 	}
 	
 	public String getIp() {

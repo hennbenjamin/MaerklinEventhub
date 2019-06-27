@@ -4,6 +4,8 @@ import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
 import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
+import org.apache.log4j.BasicConfigurator;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,6 +31,11 @@ public class CanMain {
 		String ipAdress = "192.168.0.2";
 		Scanner in = new Scanner(System.in);
 
+		//----UNCOMMENT TO CONNECT TO EVENTHUB----
+		//This configures the log4j framework/package, necessary to send data to eventhub
+/*		BasicConfigurator.configure();
+
+		//Credentials to connect to eventhub
 		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
 				.setNamespaceName("BIAcademyNS")
 				.setEventHubName("eventhubmarklinlok")
@@ -47,44 +54,49 @@ public class CanMain {
 		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
-
+*/
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
 		*/
 
+		//We will use this variable later to injest data into eventhub
 		String payload = "";
+		int iterations;	//Number of iterations that we will perform on the resources status.
+		System.out.print("How many iterations do you want to perform?");
+		iterations = in.nextInt();
+
+		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
 		GetCan ec = new GetCan("192.168.0.2",15731);
 		ec.start();
 
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
-
-		int iterations = in.nextInt();
 		sendCanToCS3(ipAdress, iterations);
-		//use better method instead
-		ec.stop();
+		ec.stopListener();
 
 		try {
+			System.out.println("\t---Payload output---");
 			for(int i = 0; i<ec.payload.size(); i++){
 				payload = ec.payload.get(i);
-				System.out.println(payload);
-				byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
-				EventData sendEvent = EventData.create(payloadBytes);
+				System.out.println("# " + payload);
+				//byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+				//EventData sendEvent = EventData.create(payloadBytes);
 
 				// Send - not tied to any partition
 				// Event Hubs service will round-robin the events across all Event Hubs partitions.
 				// This is the recommended & most reliable way to send to Event Hubs.
-				ehClient.sendSync(sendEvent);
+				//ehClient.sendSync(sendEvent);
 			}
 			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
 		}finally {
-			ehClient.closeSync();
-			executorService.shutdown();
+			//ehClient.closeSync();
+			//executorService.shutdown();
 		}
+
 
 		
 	//	pingHost(addresse);
@@ -144,9 +156,7 @@ public class CanMain {
 		//udp.DecodeUdp(id, dlc, data, udpFrame);
 		
 		//udp.send(data, 15730, "192.168.0.2");
-			
-		//UdpConnection udp = new UdpConnection();
-		//udp.run();
+
 	}
 
 
@@ -169,20 +179,21 @@ public class CanMain {
 		int[] testFrame = new int[13];
 		int cargoId = 0x4007;
 
+		//If the variable is setted up as -1, Max Limit = 500
 		if(iterations == -1)
 			iterations = 500;
 
 		for (int i = 0; i<iterations; i++) {
 
-			//ask for status of water
+			//ask status of water
 			udpFrame = send.getWater();
 			sendTCP(udpFrame, 0, udpFrame.length);
 
-			//ask for status of oil
+			//ask status of oil
 			udpFrame = send.getOil();
 			sendTCP(udpFrame, 0, udpFrame.length);
 
-			//ask for status of sand
+			//ask status of sand
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
 
@@ -191,28 +202,6 @@ public class CanMain {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			//System.out.println("udpLength: " + udpFrame.length);
-			//sendTCP(udpFrame, 0, udpFrame.length);
-/*		while(true) {
-			udpFrame = send.getWater();
-			System.out.println("udpLength: " + udpFrame.length);
-			for (int i = 0; i < udpFrame.length; i++) {
-				System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-			}
-
-			sendTCP(udpFrame, 0, udpFrame.length);
-		}*/
-//		udpFrame = send.stopAll();
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setDirection(3);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setSpeed(80);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
 
 			/////////////////DEBUG PRINT UDP-Package/////////////////
 	/*	System.out.println("udpLength: " + udpFrame.length);
