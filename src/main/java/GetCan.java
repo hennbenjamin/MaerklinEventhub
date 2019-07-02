@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,7 +27,10 @@ public class GetCan extends Thread{
 	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	private int RoundCount = 0;
 	boolean stop = false;
+	private Date startTime = null;
+	String dataset = "";
 	LinkedList<String> payload = new LinkedList<String>();
+	ArrayList<String> SQLstment = new ArrayList<String>();
 
 	@Override
 	//Starts all the methods,
@@ -97,6 +101,9 @@ public class GetCan extends Thread{
 			mf2.setValueContainsLiteralCharacters(false);
 			String hexNr = "00" + hexEncode(data);
 			Date date = new Date();
+
+			if(startTime == null)
+				startTime = date;
 			
 			HashMap<String, String> dataMap = new HashMap();
 			dataMap = translateToHashMap(hexNr);
@@ -126,6 +133,10 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
 					payload.add(result);
+					dataset = lokId + ";" + CanMain.coaches + ";Water;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
+					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
 					System.out.println(result);
 					rowCount++;
 				}
@@ -142,6 +153,10 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
 					payload.add(result);
+					dataset = lokId + ";" + CanMain.coaches + ";Oil;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
+					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
 					System.out.println(result);
 					rowCount++;
 				}
@@ -158,6 +173,10 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
 					payload.add(result);
+					dataset = lokId + ";" + CanMain.coaches + ";Sand;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
+					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
 					System.out.println(result);
 					rowCount++;
 				}

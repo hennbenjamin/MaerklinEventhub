@@ -6,12 +6,19 @@ import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -24,6 +31,7 @@ public class CanMain {
 
 	private static DatagramSocket dms;
 	private static TestSend send;
+	protected static int coaches;
 
 
 	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
@@ -32,6 +40,13 @@ public class CanMain {
 		Scanner in = new Scanner(System.in);
 		String payload = "";	//We will use this variable later to injest data into eventhub
 		int iterations;			//Number of iterations that we will perform on the resources status.
+							 //"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
+		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu:1433;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123";
+		try {
+			Class.forName("com.sqlserver.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
@@ -62,9 +77,32 @@ public class CanMain {
 		uic.go();
 		*/
 
+		//----UNCOMMENT TO SEND TO MSSQL----
+		// Create a variable for the connection string.
+
+		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
+			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+			ResultSet rs = stmt.executeQuery(SQL);
+
+			// Iterate through the data in the result set and display it.
+			while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
+			}
+		}
+		// Handle any errors that may have occurred.
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
 		System.out.print("How many iterations do you want to perform?");
 		iterations = in.nextInt();
+		System.out.println("How many coaches are attached?");
+		coaches = in.nextInt();
 
 		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
 		GetCan ec = new GetCan("192.168.0.2",15731);
@@ -76,26 +114,40 @@ public class CanMain {
 		sendCanToCS3(ipAdress, iterations);
 		ec.stopListener();
 
-		try {
+		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
 			System.out.println("\t---Payload output---");
+
+			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+
+			ResultSet rs = stmt.executeQuery(SQL);
 			for(int i = 0; i<ec.payload.size(); i++){
 				payload = ec.payload.get(i);
 				System.out.println("# " + payload);
-				//byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
-				//EventData sendEvent = EventData.create(payloadBytes);
+/*			byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+				EventData sendEvent = EventData.create(payloadBytes);
 
 				// Send - not tied to any partition
 				// Event Hubs service will round-robin the events across all Event Hubs partitions.
 				// This is the recommended & most reliable way to send to Event Hubs.
-				//ehClient.sendSync(sendEvent);
+				ehClient.sendSync(sendEvent);
+*/
+			}
+			while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
 			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
+		}catch (SQLException e) {
+			e.printStackTrace();
 		}finally {
-			//ehClient.closeSync();
-			//executorService.shutdown();
-		}
+/*			ehClient.closeSync();
+			executorService.shutdown();
+*/		}
 
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
