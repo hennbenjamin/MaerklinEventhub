@@ -1,55 +1,155 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
+import com.microsoft.azure.eventhubs.EventData;
+import com.microsoft.azure.eventhubs.EventHubClient;
+import com.microsoft.azure.eventhubs.EventHubException;
+import org.apache.log4j.BasicConfigurator;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-//import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 
 public class CanMain {
 
 	private static DatagramSocket dms;
 	private static TestSend send;
+	protected static int coaches;
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-		
-//		InetSocketAddress endpoint = new InetSocketAddress(ip,port);
-//		clientConn.connect(endpoint);
-//		InetAddress addresse = InetAddress.getByName(ipAdress);
+
+	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
+
 		String ipAdress = "192.168.0.2";
+		Scanner in = new Scanner(System.in);
+		String payload = "";	//We will use this variable later to injest data into eventhub
+		int iterations;			//Number of iterations that we will perform on the resources status.
+							 //"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
+		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu:1433;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123";
+		try {
+			Class.forName("com.sqlserver.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 
+		//----UNCOMMENT TO CONNECT TO EVENTHUB----
+		//This configures the log4j framework/package, necessary to send data to eventhub
+/*		BasicConfigurator.configure();
+
+		//Credentials to connect to eventhub
+		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
+				.setNamespaceName("BIAcademyNS")
+				.setEventHubName("eventhubmarklinlok")
+				.setSasKeyName("RootManageSharedAccessKey")
+				.setSasKey("jiuer6fxPoEnrkrxzVwWVdRi1qw2+5A3rAoevEsiEVs=");
+
+		final Gson gson = new GsonBuilder().create();
+
+		// The Executor handles all asynchronous tasks and this is passed to the EventHubClient instance.
+		// This enables the user to segregate their thread pool based on the work load.
+		// This pool can then be shared across multiple EventHubClient instances.
+		// The following sample uses a single thread executor, as there is only one EventHubClient instance,
+		// handling different flavors of ingestion to Event Hubs here.
+		final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+
+		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
+		// It is always a best practice to reuse these instances. The following sample shows this.
+		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
+*/
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
 		*/
 
-		//uncomment to get Data
-		EncodeCan ec = new EncodeCan();
-		//uncomment to get Data
+		//----UNCOMMENT TO SEND TO MSSQL----
+		// Create a variable for the connection string.
+
+		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
+			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+			ResultSet rs = stmt.executeQuery(SQL);
+
+			// Iterate through the data in the result set and display it.
+			while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
+			}
+		}
+		// Handle any errors that may have occurred.
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
+		System.out.print("How many iterations do you want to perform?");
+		iterations = in.nextInt();
+		System.out.println("How many coaches are attached?");
+		coaches = in.nextInt();
+
+		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
+		GetCan ec = new GetCan("192.168.0.2",15731);
 		ec.start();
 
-//		SendCan udp = new SendCan();				
-		
-		
-		
-		
-		////Thread sendCan = new Thread(CanMain, "Thread1");
-		////myThread.start();
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
-		sendCanToCS3(ipAdress);
+		sendCanToCS3(ipAdress, iterations);
+		ec.stopListener();
+
+		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
+			System.out.println("\t---Payload output---");
+
+			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+
+			ResultSet rs = stmt.executeQuery(SQL);
+			for(int i = 0; i<ec.payload.size(); i++){
+				payload = ec.payload.get(i);
+				System.out.println("# " + payload);
+/*			byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+				EventData sendEvent = EventData.create(payloadBytes);
+
+				// Send - not tied to any partition
+				// Event Hubs service will round-robin the events across all Event Hubs partitions.
+				// This is the recommended & most reliable way to send to Event Hubs.
+				ehClient.sendSync(sendEvent);
+*/
+			}
+			while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
+			}
+			System.out.println(Instant.now() + ": Send Complete...");
+			System.out.println("Press Enter to stop.");
+			System.in.read();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+/*			ehClient.closeSync();
+			executorService.shutdown();
+*/		}
 
 
-
-		////send.start();
-
-
-		
-		
-	//	pingHost(addresse);
-		
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
 					
 //		byte[] udpFrame = new byte[13];
@@ -105,15 +205,15 @@ public class CanMain {
 		//udp.DecodeUdp(id, dlc, data, udpFrame);
 		
 		//udp.send(data, 15730, "192.168.0.2");
-			
-		//UdpConnection udp = new UdpConnection();
-		//udp.run();
+
 	}
+
+
 	/**************************************************************************************
 	 * SEND CAN MESSAGE
 	 * @throws UnknownHostException 
 	 ***************************************************************************************/
-	public static void sendCanToCS3 (String ipAdress) throws UnknownHostException {
+	public static void sendCanToCS3 (String ipAdress, int iterations) throws UnknownHostException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
 		//SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
@@ -126,53 +226,15 @@ public class CanMain {
 		char prio = 0; 
 		char dlc = 6; 
 		int[] testFrame = new int[13];
-		
-//		TestSend send = new TestSend();
-//		
-//		Thread sendCan = new Thread(send, "second");
-//		
-		
-		
 		int cargoId = 0x4007;
-		while (true) {
+
+		//If the variable is setted up as -1, Max Limit = 500
+		if(iterations == -1) iterations = 500;
+
+		for (int i = 0; i<iterations; i++) {
+
+			//ask status of water
 			udpFrame = send.getWater();
-			sendTCP(udpFrame, 0, udpFrame.length);
-
-			udpFrame = send.getOil();
-			sendTCP(udpFrame, 0, udpFrame.length);
-			udpFrame = send.getSand();
-			sendTCP(udpFrame, 0, udpFrame.length);
-			//System.out.println("udpLength: " + udpFrame.length);
-			sendTCP(udpFrame, 0, udpFrame.length);
-/*		while(true) {
-			udpFrame = send.getWater();
-			System.out.println("udpLength: " + udpFrame.length);
-			for (int i = 0; i < udpFrame.length; i++) {
-				System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-			}
-
-			sendTCP(udpFrame, 0, udpFrame.length);
-		}*/
-
-
-//		udpFrame = send.stopAll();
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setDirection(3);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setSpeed(80);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-
-			/////////////////DEBUG PRINT UDP-Package/////////////////
-	/*	System.out.println("udpLength: " + udpFrame.length);
-		for (int i = 0; i < udpFrame.length; i++) {
-			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-		}*/
-
 			sendTCP(udpFrame, 0, udpFrame.length);
 			try {
 				TimeUnit.SECONDS.sleep(1);
@@ -180,12 +242,34 @@ public class CanMain {
 				e.printStackTrace();
 			}
 
+			//ask status of oil
+			udpFrame = send.getOil();
+			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			//ask status of sand
+			udpFrame = send.getSand();
+			sendTCP(udpFrame, 0, udpFrame.length);
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			/////////////////DEBUG PRINT UDP-Package/////////////////
+/*		System.out.println("udpLength: " + udpFrame.length);
+		for (int i = 0; i < udpFrame.length; i++) {
+			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
+}*/
+
 		}
-		//TimeUnit.SECONDS.sleep(1);
 	}
 	
-	
-	
+
 	/**************************************************************************************
 	 * CONSTRUCT CAN MESSAGE
 	 ***************************************************************************************/
@@ -224,6 +308,8 @@ public class CanMain {
 		return udpFr;
 	}
 	*/
+
+
 	/*************************************************************************************** 
 	 * PING HOST
 	 ***************************************************************************************/
@@ -241,7 +327,8 @@ public class CanMain {
 		}
 		
 	}
-	
+
+
 	/*************************************************************************************** 
 	 * SEND UDP-FRAME via UDP to HOST 
 	 ***************************************************************************************/
@@ -258,7 +345,8 @@ public class CanMain {
 			e.printStackTrace();
 		}
 	}
-	
+
+
 	/*************************************************************************************** 
 	 * SEND TCP-FRAME via TCP to HOST 
 	 ***************************************************************************************/
@@ -284,9 +372,4 @@ public class CanMain {
 		}
 	}
 
-		
-	
-	
-	
-	
 }
