@@ -29,8 +29,13 @@ public class GetCan extends Thread{
 	boolean stop = false;
 	private Date startTime = null;
 	String dataset = "";
+	String resource = "water";
+	String header;
+	String resultCSV = "";
+	String resultJSON = "";
 	LinkedList<String> payload = new LinkedList<String>();
 	ArrayList<String> SQLstment = new ArrayList<String>();
+	LinkedList<String> jsonPayload = new LinkedList<String>();
 
 	@Override
 	//Starts all the methods,
@@ -49,7 +54,7 @@ public class GetCan extends Thread{
 	 */
 	public GetCan(String ip, int port) {
 		setIp(ip);
-		setPort(port);	
+		setPort(port);
 	}
 
 	/**
@@ -75,8 +80,9 @@ public class GetCan extends Thread{
 			tcp_inputStream = tcp_socket.getInputStream();
 			tcp_inputStream.read(bytes);
 			byte test = (byte)tcp_socket.getInputStream().read();
-			//System.out.println("Test: " + test);
-			System.out.println("RowCount;Datetime;Lokid;Resource;Value(in Java);Value(in CS3);RoundCount");
+			header = "RowCount;Datetime;Lokid;Resource;Value(in Java);Value(in CS3);RoundCount";
+			System.out.println(header);
+			payload.add(header);
 			
 		} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -88,7 +94,6 @@ public class GetCan extends Thread{
 		}	
 		
 		int rowCount = 0;
-		String result = "";
 
 		//While trigger is false, it keeps listening
 		while(stop == false) {
@@ -131,13 +136,14 @@ public class GetCan extends Thread{
 						Res += 256;
 					/////////////////DEBUG////// ADD hexFormatted
 					//System.out.println(hexFormatted);
-					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
-					payload.add(result);
+					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
+					payload.add(resultCSV);
+					//resultJSON = "{RowCount:" + rowCount + "," + ;
 					dataset = lokId + ";" + CanMain.coaches + ";Water;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
-					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
-					System.out.println(result);
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
+					System.out.println(resultCSV);
 					rowCount++;
 				}
 			}
@@ -151,13 +157,14 @@ public class GetCan extends Thread{
 						Res += 256;
 
 					//System.out.println(hexFormatted);
-					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
-					payload.add(result);
+					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
+					payload.add(resultCSV);
+
 					dataset = lokId + ";" + CanMain.coaches + ";Oil;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
-					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
-					System.out.println(result);
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
+					System.out.println(resultCSV);
 					rowCount++;
 				}
 			}
@@ -171,13 +178,14 @@ public class GetCan extends Thread{
 						Res += 256;
 
 					//System.out.println(hexFormatted);
-					result = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
-					payload.add(result);
+					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
+					payload.add(resultCSV);
+
 					dataset = lokId + ";" + CanMain.coaches + ";Sand;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
-					SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");
-					System.out.println(result);
+							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
+					System.out.println(resultCSV);
 					rowCount++;
 				}
 			}
@@ -201,8 +209,17 @@ public class GetCan extends Thread{
 		closeConn(); 
 	}
 
+	//it stops conn()
 	public void stopListener(){
 		stop = true;
+	}
+
+	public String getResourceName(){
+		return this.resource;
+	}
+
+	public void setResourceName(String res){
+		this.resource = res;
 	}
 
 	//have Data Container where Data is separated into metadata and data

@@ -1,3 +1,4 @@
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
@@ -11,6 +12,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -40,13 +43,10 @@ public class CanMain {
 		Scanner in = new Scanner(System.in);
 		String payload = "";	//We will use this variable later to injest data into eventhub
 		int iterations;			//Number of iterations that we will perform on the resources status.
-							 //"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
-		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu:1433;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123";
-		try {
-			Class.forName("com.sqlserver.jdbc.Driver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+
+								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
+		//String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
+
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
@@ -79,7 +79,7 @@ public class CanMain {
 
 		//----UNCOMMENT TO SEND TO MSSQL----
 		// Create a variable for the connection string.
-
+/*
 		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
 			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
@@ -97,7 +97,7 @@ public class CanMain {
 		catch (SQLException e) {
 			e.printStackTrace();
 		}
-
+*/
 		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
 		System.out.print("How many iterations do you want to perform?");
 		iterations = in.nextInt();
@@ -108,20 +108,22 @@ public class CanMain {
 		GetCan ec = new GetCan("192.168.0.2",15731);
 		ec.start();
 
+
+
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
 		sendCanToCS3(ipAdress, iterations);
 		ec.stopListener();
 
-		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
+		try /*(Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();)*/{
 			System.out.println("\t---Payload output---");
 
-			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+			/*String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";*/
 
-			ResultSet rs = stmt.executeQuery(SQL);
+			//ResultSet rs = stmt.executeQuery(SQL);
 			for(int i = 0; i<ec.payload.size(); i++){
 				payload = ec.payload.get(i);
 				System.out.println("# " + payload);
@@ -134,21 +136,20 @@ public class CanMain {
 				ehClient.sendSync(sendEvent);
 */
 			}
-			while (rs.next()) {
+/*			while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
 						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
-			System.out.println(Instant.now() + ": Send Complete...");
+*/			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
-		}catch (SQLException e) {
+		}/*catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
+		}*/finally {
 /*			ehClient.closeSync();
 			executorService.shutdown();
 */		}
-
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
 					
