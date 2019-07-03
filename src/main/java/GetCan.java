@@ -18,6 +18,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public class GetCan extends Thread{
 
 	//private Socket tcp_socket;
@@ -94,7 +97,7 @@ public class GetCan extends Thread{
 		}	
 		
 		int rowCount = 0;
-
+        Gson gson = new GsonBuilder().create();
 		//While trigger is false, it keeps listening
 		while(stop == false) {
 
@@ -138,12 +141,26 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Water" + ";" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount + ";";
 					payload.add(resultCSV);
-					//resultJSON = "{RowCount:" + rowCount + "," + ;
+					resultJSON = "{"
+                            + "\"RowCount\":" + rowCount + ","
+                            + "\"Date\":" + sdf.format(date) + ","
+                            + "\"LokID\":" + lokId + ","
+                            + "\"Resource\":" + "Water" + ","
+                            + "\"ResValue\":" + Res + ","
+                            + "\"ResCalc\":" + (int) (Res*31.3725) + ","
+                            + "\"Round\":" + RoundCount
+                            + "}" ;
+					
 					dataset = lokId + ";" + CanMain.coaches + ";Water;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
 					System.out.println(resultCSV);
+
+
+
+
+
 					rowCount++;
 				}
 			}
