@@ -150,7 +150,7 @@ public class GetCan extends Thread{
                             + "\"ResCalc\":" + (int) (Res*31.3725) + ","
                             + "\"Round\":" + RoundCount
                             + "}" ;
-					
+
 					dataset = lokId + ";" + CanMain.coaches + ";Water;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
@@ -176,8 +176,16 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Oil" + ";" + Res + ";" + (int) (Res * 11.7647) + ";" + RoundCount + ";";
 					payload.add(resultCSV);
-
-					dataset = lokId + ";" + CanMain.coaches + ";Oil;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
+					resultJSON = "{"
+							+ "\"RowCount\":" + rowCount + ","
+							+ "\"Date\":" + sdf.format(date) + ","
+							+ "\"LokID\":" + lokId + ","
+							+ "\"Resource\":" + "Oil" + ","
+							+ "\"ResValue\":" + Res + ","
+							+ "\"ResCalc\":" + (int) (Res*11.7647) + ","
+							+ "\"Round\":" + RoundCount
+							+ "}" ;
+					dataset = lokId + ";" + CanMain.coaches + ";Oil;" + Res + ";" + (int) (Res*11.7647) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
@@ -197,8 +205,16 @@ public class GetCan extends Thread{
 					//System.out.println(hexFormatted);
 					resultCSV = rowCount + ";" + sdf.format(date) + ";" + lokId + ";" + "Sand" + ";" + Res + ";" + (int) (Res * 0.9803) + ";" + RoundCount + ";";
 					payload.add(resultCSV);
-
-					dataset = lokId + ";" + CanMain.coaches + ";Sand;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
+					resultJSON = "{"
+							+ "\"RowCount\":" + rowCount + ","
+							+ "\"Date\":" + sdf.format(date) + ","
+							+ "\"LokID\":" + lokId + ","
+							+ "\"Resource\":" + "Oil" + ","
+							+ "\"ResValue\":" + Res + ","
+							+ "\"ResCalc\":" + (int) (Res*0.9803) + ","
+							+ "\"Round\":" + RoundCount
+							+ "}" ;
+					dataset = lokId + ";" + CanMain.coaches + ";Sand;" + Res + ";" + (int) (Res*0.9803) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
