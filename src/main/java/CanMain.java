@@ -6,7 +6,7 @@ import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
-
+import com.microsoft.sqlserver.jdbc.*;
 import java.sql.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Scanner;
@@ -42,14 +44,19 @@ public class CanMain {
 		//We will use this variable later to injest data into eventhub
 		String payload = "";
 		int iterations;			//Number of iterations that we will perform on the resources status.
-		final Gson gson = new GsonBuilder().create();
+		//final Gson gson = new GsonBuilder().create();
 								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
-		//String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
 
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
-		BasicConfigurator.configure();
+/*		BasicConfigurator.configure();
 
 		//Credentials to connect to eventhub
 		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
@@ -70,7 +77,7 @@ public class CanMain {
 		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
-
+*/
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
@@ -78,25 +85,29 @@ public class CanMain {
 
 		//----UNCOMMENT TO SEND TO MSSQL----
 		// Create a variable for the connection string.
-/*
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		Date date = new Date();
+
 		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
 			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
-					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
+					"[TIME_STAMP], [DATASET], [DELIMITER]) VALUES ('STEAMDATA', '" + sdf.format(date).toString() + "','" + sdf.format(date).toString() + "'," + "'4007;8;Sand;20;30;0', ';')";
+			System.out.println("SQL: " + SQL);
 			ResultSet rs = stmt.executeQuery(SQL);
 
 			// Iterate through the data in the result set and display it.
-			while (rs.next()) {
+		/*	while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
 						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
+
+		 */
 		}
 		// Handle any errors that may have occurred.
 		catch (SQLException e) {
 			e.printStackTrace();
 		}
-*/
+
 		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
 /*		System.out.print("How many iterations do you want to perform?");
 		iterations = in.nextInt();
@@ -126,7 +137,7 @@ public class CanMain {
 			for(int i = 0; i<ec.payload.size(); i++){
 				payload = ec.payload.get(i);
 				System.out.println("# " + payload);
-		byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+		byte[] payloadBytes = payload.getBytes(Charset.defaultCharset());
 				EventData sendEvent = EventData.create(payloadBytes);
 
 				// Send - not tied to any partition
@@ -145,13 +156,14 @@ public class CanMain {
 			System.in.read();
 		}catch (SQLException e) {
 			e.printStackTrace();
-		}finally {
+		} */
+		/*finally {
 			ehClient.closeSync();
 			executorService.shutdown();
 		}
 */
 		//----UNCOMMENT TO SEND JSON FORMAT FILES----
-		try{
+/*		try{
 			System.out.println("\t---PayloadJSON output---");
 
 
@@ -167,23 +179,23 @@ public class CanMain {
 				ehClient.sendSync(sendEvent);
 
 			}
-
+*/
 			/*while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
 						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
 			*/
-			System.out.println(Instant.now() + ": Send Complete...");
-			System.out.println("Press Enter to stop.");
-			System.in.read();
-		//}catch (SQLException e) {
-		//	e.printStackTrace();
-	}	finally {
-			ehClient.closeSync();
+//			System.out.println(Instant.now() + ": Send Complete...");
+//			System.out.println("Press Enter to stop.");
+//			System.in.read();
+//		}catch (SQLException e) {
+//			e.printStackTrace();
+//	}	finally {
+/*			ehClient.closeSync();
 			executorService.shutdown();
 	}
-
+*/
 
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
