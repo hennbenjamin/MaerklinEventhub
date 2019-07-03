@@ -27,7 +27,7 @@ public class GetCan extends Thread{
 	private Socket tcp_socket = null;
 	private String ip; 
 	private int port; 
-	private static final DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private static final DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	private int RoundCount = 0;
 	boolean stop = false;
 	private Date startTime = null;
@@ -143,14 +143,14 @@ public class GetCan extends Thread{
 					payload.add(resultCSV);
 					resultJSON = "{"
                             + "\"RowCount\":" + rowCount + ","
-                            + "\"Date\":" + sdf.format(date) + ","
+                            + "\"Date\":" + "\"" + sdf.format(date).toString() + "\"" + ","
                             + "\"LokID\":" + lokId + ","
-                            + "\"Resource\":" + "Water" + ","
+                            + "\"Resource\":" + "\"Water\"" + ","
                             + "\"ResValue\":" + Res + ","
                             + "\"ResCalc\":" + (int) (Res*31.3725) + ","
                             + "\"Round\":" + RoundCount
-                            + "}" ;
-
+                            + "}";
+					jsonPayload.add(resultJSON);
 					dataset = lokId + ";" + CanMain.coaches + ";Water;" + Res + ";" + (int) (Res*31.3725) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
@@ -178,13 +178,14 @@ public class GetCan extends Thread{
 					payload.add(resultCSV);
 					resultJSON = "{"
 							+ "\"RowCount\":" + rowCount + ","
-							+ "\"Date\":" + sdf.format(date) + ","
+							+ "\"Date\":" + "\"" + sdf.format(date).toString() + "\"" + ","
 							+ "\"LokID\":" + lokId + ","
-							+ "\"Resource\":" + "Oil" + ","
+							+ "\"Resource\":" + "\"Oil\"" + ","
 							+ "\"ResValue\":" + Res + ","
 							+ "\"ResCalc\":" + (int) (Res*11.7647) + ","
 							+ "\"Round\":" + RoundCount
-							+ "}" ;
+							+ "}";
+					jsonPayload.add(resultJSON);
 					dataset = lokId + ";" + CanMain.coaches + ";Oil;" + Res + ";" + (int) (Res*11.7647) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
@@ -207,13 +208,14 @@ public class GetCan extends Thread{
 					payload.add(resultCSV);
 					resultJSON = "{"
 							+ "\"RowCount\":" + rowCount + ","
-							+ "\"Date\":" + sdf.format(date) + ","
+							+ "\"Date\":" + "\"" + sdf.format(date).toString() + "\"" + ","
 							+ "\"LokID\":" + lokId + ","
-							+ "\"Resource\":" + "Oil" + ","
+							+ "\"Resource\":" + "\"Sand\"" + ","
 							+ "\"ResValue\":" + Res + ","
 							+ "\"ResCalc\":" + (int) (Res*0.9803) + ","
 							+ "\"Round\":" + RoundCount
-							+ "}" ;
+							+ "}";
+					jsonPayload.add(resultJSON);
 					dataset = lokId + ";" + CanMain.coaches + ";Sand;" + Res + ";" + (int) (Res*0.9803) + ";" + RoundCount;
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +

@@ -7,11 +7,7 @@ import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+import java.nio.charset.StandardCharsets;
 
 
 public class CanMain {
@@ -40,8 +37,10 @@ public class CanMain {
 	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
 
 		String ipAdress = "192.168.0.2";
+
 		Scanner in = new Scanner(System.in);
-		String payload = "";	//We will use this variable later to injest data into eventhub
+		//We will use this variable later to injest data into eventhub
+		String payload = "";
 		int iterations;			//Number of iterations that we will perform on the resources status.
 		final Gson gson = new GsonBuilder().create();
 								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
@@ -50,16 +49,16 @@ public class CanMain {
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
-/*		BasicConfigurator.configure();
+		BasicConfigurator.configure();
 
 		//Credentials to connect to eventhub
 		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
 				.setNamespaceName("BIAcademyNS")
-				.setEventHubName("eventhubmarklinlok")
+				.setEventHubName("eventhubmarklinsteamlok")
 				.setSasKeyName("RootManageSharedAccessKey")
 				.setSasKey("jiuer6fxPoEnrkrxzVwWVdRi1qw2+5A3rAoevEsiEVs=");
 
-		final Gson gson = new GsonBuilder().create();
+		//final Gson gson = new GsonBuilder().create();
 
 		// The Executor handles all asynchronous tasks and this is passed to the EventHubClient instance.
 		// This enables the user to segregate their thread pool based on the work load.
@@ -71,7 +70,7 @@ public class CanMain {
 		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
-*/
+
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
@@ -99,11 +98,11 @@ public class CanMain {
 		}
 */
 		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
-		System.out.print("How many iterations do you want to perform?");
+/*		System.out.print("How many iterations do you want to perform?");
 		iterations = in.nextInt();
 		System.out.println("How many coaches are attached?");
 		coaches = in.nextInt();
-
+*/
 		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
 		GetCan ec = new GetCan("192.168.0.2",15731);
 		ec.start();
@@ -113,73 +112,76 @@ public class CanMain {
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
-		sendCanToCS3(ipAdress, iterations);
+		sendCanToCS3(ipAdress, 1);
 		ec.stopListener();
 
-		try /*(Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();)*/{
+/*		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
 			System.out.println("\t---Payload output---");
 
-			/*String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
+			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-					"VALUES (STEAMDATA, 1234, 5678, sand, ;";*/
+					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
 
 			//ResultSet rs = stmt.executeQuery(SQL);
 			for(int i = 0; i<ec.payload.size(); i++){
 				payload = ec.payload.get(i);
 				System.out.println("# " + payload);
-/*			byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+		byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
 				EventData sendEvent = EventData.create(payloadBytes);
 
 				// Send - not tied to any partition
 				// Event Hubs service will round-robin the events across all Event Hubs partitions.
 				// This is the recommended & most reliable way to send to Event Hubs.
 				ehClient.sendSync(sendEvent);
-*/
+
 			}
-/*			while (rs.next()) {
+			while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
 						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
-*/			System.out.println(Instant.now() + ": Send Complete...");
+			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
-		}/*catch (SQLException e) {
+		}catch (SQLException e) {
 			e.printStackTrace();
-		}*/finally {
-/*			ehClient.closeSync();
+		}finally {
+			ehClient.closeSync();
 			executorService.shutdown();
-*/		}
-
+		}
+*/
 		//----UNCOMMENT TO SEND JSON FORMAT FILES----
 		try{
 			System.out.println("\t---PayloadJSON output---");
-			for(int i = 0; i<ec.jsonPayload.size(); i++){
+
+
+			for(int i = 0; i<ec.jsonPayload.size(); i++){ //ec.jsonPayload.size()
 				payload = ec.jsonPayload.get(i);
 				System.out.println("@ " + payload);
-				byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
-				System.out.println(payloadBytes);
-/*				EventData sendEvent = EventData.create(payloadBytes);
+				byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8.name());
+				EventData sendEvent = EventData.create(payloadBytes);
 
 				// Send - not tied to any partition
 				// Event Hubs service will round-robin the events across all Event Hubs partitions.
 				// This is the recommended & most reliable way to send to Event Hubs.
 				ehClient.sendSync(sendEvent);
-*/
+
 			}
-/*			while (rs.next()) {
+
+			/*while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
 						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
-*/			System.out.println(Instant.now() + ": Send Complete...");
+			*/
+			System.out.println(Instant.now() + ": Send Complete...");
 			System.out.println("Press Enter to stop.");
 			System.in.read();
-		}/*catch (SQLException e) {
-			e.printStackTrace();
-		}*/finally {
-			//ehClient.closeSync();
-			//executorService.shutdown();
+		//}catch (SQLException e) {
+		//	e.printStackTrace();
+	}	finally {
+			ehClient.closeSync();
+			executorService.shutdown();
 	}
 
 
