@@ -43,7 +43,7 @@ public class CanMain {
 		Scanner in = new Scanner(System.in);
 		String payload = "";	//We will use this variable later to injest data into eventhub
 		int iterations;			//Number of iterations that we will perform on the resources status.
-
+		final Gson gson = new GsonBuilder().create();
 								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
 		//String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
 
@@ -150,6 +150,39 @@ public class CanMain {
 /*			ehClient.closeSync();
 			executorService.shutdown();
 */		}
+
+		//----UNCOMMENT TO SEND JSON FORMAT FILES----
+		try{
+			System.out.println("\t---PayloadJSON output---");
+			for(int i = 0; i<ec.jsonPayload.size(); i++){
+				payload = ec.jsonPayload.get(i);
+				System.out.println("@ " + payload);
+				byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+				System.out.println(payloadBytes);
+/*				EventData sendEvent = EventData.create(payloadBytes);
+
+				// Send - not tied to any partition
+				// Event Hubs service will round-robin the events across all Event Hubs partitions.
+				// This is the recommended & most reliable way to send to Event Hubs.
+				ehClient.sendSync(sendEvent);
+*/
+			}
+/*			while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
+			}
+*/			System.out.println(Instant.now() + ": Send Complete...");
+			System.out.println("Press Enter to stop.");
+			System.in.read();
+		}/*catch (SQLException e) {
+			e.printStackTrace();
+		}*/finally {
+			//ehClient.closeSync();
+			//executorService.shutdown();
+	}
+
+
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
 					
