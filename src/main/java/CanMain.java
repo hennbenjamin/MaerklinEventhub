@@ -93,7 +93,7 @@ public class CanMain {
 					"[TIME_STAMP], [DATASET], [DELIMITER]) VALUES ('STEAMDATA', '" + sdf.format(date).toString() + "','" + sdf.format(date).toString() + "'," + "'4007;8;Sand;20;30;0', ';')";
 			System.out.println("SQL: " + SQL);
 			//ResultSet rs =
-            stmt.executeQuery(SQL);
+            stmt.executeUpdate(SQL);
 
 			// Iterate through the data in the result set and display it.
 		/*	while (rs.next()) {
@@ -183,7 +183,7 @@ public class CanMain {
 */
 			/*while (rs.next()) {
 				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
-						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+                            " " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
 						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
 			}
 			*/
