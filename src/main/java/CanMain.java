@@ -43,6 +43,10 @@ public class CanMain {
 		Scanner in = new Scanner(System.in);
 		//We will use this variable later to injest data into eventhub
 		String payload = "";
+
+		//We'll use this variable to set the datatype for the sql server data
+		String dType = "";
+
 		int iterations;			//Number of iterations that we will perform on the resources status.
 		//final Gson gson = new GsonBuilder().create();
 								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
@@ -83,31 +87,8 @@ public class CanMain {
 		uic.go();
 		*/
 
-		//----UNCOMMENT TO SEND TO MSSQL----
-		// Create a variable for the connection string.
-		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		Date date = new Date();
 
-		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
-					"[TIME_STAMP], [DATASET], [DELIMITER]) VALUES ('STEAMDATA', '" + sdf.format(date).toString() + "','" + sdf.format(date).toString() + "'," + "'4007;8;Sand;20;30;0', ';')";
-			System.out.println("SQL: " + SQL);
-			//ResultSet rs =
-            stmt.executeUpdate(SQL);
 
-			// Iterate through the data in the result set and display it.
-		/*	while (rs.next()) {
-				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
-						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
-						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
-			}
-
-		 */
-		}
-		// Handle any errors that may have occurred.
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
 
 		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
 /*		System.out.print("How many iterations do you want to perform?");
@@ -126,6 +107,48 @@ public class CanMain {
 		//uncomment to send Data
 		sendCanToCS3(ipAdress, 1);
 		ec.stopListener();
+
+
+		//----UNCOMMENT TO SEND TO MSSQL----
+		// Create a variable for the connection string.
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		Date date = new Date();
+
+		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
+			for (int i = 0; i < ec.payload.size(); i++) {
+				String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], "
+						+ "[TIME_STAMP], [DATASET], [DELIMITER])"
+						+ "VALUES ('STEAMDATA', '"
+							+ sdf.format(date).toString() + "','"
+							+ sdf.format(date).toString() + "','"
+							+ ec.payload.get(i)
+						+ "', ';')";
+				System.out.println("SQL: " + SQL);
+				//ResultSet rs =
+				try {
+					stmt.executeUpdate(SQL);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+
+			}
+
+
+
+
+			// Iterate through the data in the result set and display it.
+		/*	while (rs.next()) {
+				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
+						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
+						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
+			}
+
+		 */
+		}
+		// Handle any errors that may have occurred.
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
 
 /*		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
 			System.out.println("\t---Payload output---");
