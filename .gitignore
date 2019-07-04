@@ -25,3 +25,5 @@ hs_err_pid*
 
 # Ignore everything inside target
 /target/
+
+.idea/*
