@@ -40,7 +40,7 @@ public class CanMain {
 
 		String ipAdress = "192.168.0.2";
 
-		Scanner in = new Scanner(System.in);
+		//Scanner in = new Scanner(System.in);
 		//We will use this variable later to injest data into eventhub
 		String payload = "";
 
@@ -60,7 +60,7 @@ public class CanMain {
 
 		//----UNCOMMENT TO CONNECT TO EVENTHUB----
 		//This configures the log4j framework/package, necessary to send data to eventhub
-/*		BasicConfigurator.configure();
+		BasicConfigurator.configure();
 
 		//Credentials to connect to eventhub
 		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
@@ -81,7 +81,7 @@ public class CanMain {
 		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
-*/
+
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
@@ -97,16 +97,17 @@ public class CanMain {
 		coaches = in.nextInt();
 */
 		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
-		GetCan ec = new GetCan("192.168.0.2",15731);
-		ec.start();
+		GetCan DForSQL = new GetCan(ipAdress,15731);
+        DForSQL.start();
 
-
+		GetCan DForAzure = new GetCan(ipAdress, 15731);
+        DForAzure.start();
 
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
 		sendCanToCS3(ipAdress, 1);
-		ec.stopListener();
+        DForSQL.stopListener();
 
 
 		//----UNCOMMENT TO SEND TO MSSQL----
@@ -115,13 +116,13 @@ public class CanMain {
 		Date date = new Date();
 
 		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-			for (int i = 0; i < ec.payload.size(); i++) {
+			for (int i = 0; i < DForSQL.payload.size(); i++) {
 				String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], "
 						+ "[TIME_STAMP], [DATASET], [DELIMITER])"
 						+ "VALUES ('STEAMDATA', '"
 							+ sdf.format(date).toString() + "','"
 							+ sdf.format(date).toString() + "','"
-							+ ec.payload.get(i)
+							+ DForSQL.payload.get(i)
 						+ "', ';')";
 				System.out.println("SQL: " + SQL);
 				//ResultSet rs =
@@ -133,66 +134,20 @@ public class CanMain {
 
 			}
 
-
-
-
-			// Iterate through the data in the result set and display it.
-		/*	while (rs.next()) {
-				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
-						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
-						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
-			}
-
-		 */
 		}
 		// Handle any errors that may have occurred.
 		catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-/*		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();){
-			System.out.println("\t---Payload output---");
 
-			String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
-					"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
-					"VALUES (STEAMDATA, 1234, 5678, sand, ;";
-
-			//ResultSet rs = stmt.executeQuery(SQL);
-			for(int i = 0; i<ec.payload.size(); i++){
-				payload = ec.payload.get(i);
-				System.out.println("# " + payload);
-		byte[] payloadBytes = payload.getBytes(Charset.defaultCharset());
-				EventData sendEvent = EventData.create(payloadBytes);
-
-				// Send - not tied to any partition
-				// Event Hubs service will round-robin the events across all Event Hubs partitions.
-				// This is the recommended & most reliable way to send to Event Hubs.
-				ehClient.sendSync(sendEvent);
-
-			}
-			while (rs.next()) {
-				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
-						" " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
-						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
-			}
-			System.out.println(Instant.now() + ": Send Complete...");
-			System.out.println("Press Enter to stop.");
-			System.in.read();
-		}catch (SQLException e) {
-			e.printStackTrace();
-		} */
-		/*finally {
-			ehClient.closeSync();
-			executorService.shutdown();
-		}
-*/
 		//----UNCOMMENT TO SEND JSON FORMAT FILES----
-/*		try{
+		try{
 			System.out.println("\t---PayloadJSON output---");
 
 
-			for(int i = 0; i<ec.jsonPayload.size(); i++){ //ec.jsonPayload.size()
-				payload = ec.jsonPayload.get(i);
+			for(int i = 0; i<DForAzure.jsonPayload.size(); i++){ //ec.jsonPayload.size()
+				payload = DForAzure.jsonPayload.get(i);
 				System.out.println("@ " + payload);
 				byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8.name());
 				EventData sendEvent = EventData.create(payloadBytes);
@@ -203,23 +158,11 @@ public class CanMain {
 				ehClient.sendSync(sendEvent);
 
 			}
-*/
-			/*while (rs.next()) {
-				System.out.println(rs.getString("ROWID") + " " + rs.getString("DATATYPE") +
-                            " " + rs.getString("RECORDING_START_TIME") + " " + rs.getString("TIME_STAMP") +
-						" " + rs.getString("DATASET") + " " + rs.getString("INS_DATE"));
-			}
-			*/
-//			System.out.println(Instant.now() + ": Send Complete...");
-//			System.out.println("Press Enter to stop.");
-//			System.in.read();
-//		}catch (SQLException e) {
-//			e.printStackTrace();
-//	}	finally {
-/*			ehClient.closeSync();
+	    }finally {
+			ehClient.closeSync();
 			executorService.shutdown();
-	}
-*/
+        }
+
 
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
