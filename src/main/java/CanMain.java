@@ -5,6 +5,7 @@ import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.*;
 
 import java.io.DataOutputStream;
@@ -76,6 +77,8 @@ public class CanMain {
 		// It is always a best practice to reuse these instances. The following sample shows this.
 		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
 
+
+
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
@@ -99,48 +102,25 @@ public class CanMain {
 
 		//uncomment to send Data
 		send = new TestSend();
-		//uncomment to send Data
-		sendCanToCS3(ipAdress, 10);
-        DForSQL.stopListener();
-		DForAzure.stopListener();
+		//uncomment to GET Data
+		    sendCanToCS3(ipAdress, 10);
+            DForSQL.stopListener();
+		    DForAzure.stopListener();
 
-		//----SEND TO MSSQL----
-		// create DateFormatter for the right format of date for SQLServer.
-		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-		Date date = new Date();
-
-		try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-			for (int i = 0; i < DForSQL.payload.size(); i++) {
-				String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], "
-						+ "[TIME_STAMP], [DATASET], [DELIMITER])"
-						+ "VALUES ('STEAMDATA', '"
-							+ sdf.format(date).toString() + "','"
-							+ sdf.format(date).toString() + "','"
-							+ DForSQL.payload.get(i)
-						+ "', ';')";
-				System.out.println("SQL: " + SQL);
-				//ResultSet rs =
-				try {
-					stmt.executeUpdate(SQL);
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-
-			}
-
-		}
-		// Handle any errors that may have occurred.
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
+		sendToAzure(DForAzure,ehClient,executorService);
+		sendToMSSQL(DForSQL, connectionUrl);
 
 
 
 
 
 
-		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
 
+
+
+
+//SEND TO CS3
+    /*
 		byte[] udpFrame = new byte[13];
 		char[] data = new char[8];
 		int uid = 6168;
@@ -152,36 +132,27 @@ public class CanMain {
 
 		TestSend send = new TestSend();
 		udpFrame = send.setOil();
-		sendTCP(udpFrame, 0, udpFrame.length);
+
 		
 		System.out.println("udpLength: " + udpFrame.length);
 		for (int i = 0; i < udpFrame.length; i++) {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 		}
-//		
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-		//sendUDP(udpFrame, addresse);
-		
-		//udpFrame = send.lightOff(cargoId);
-		//sendTCP(udpFrame,0,udpFrame.length); 
-		
-		//udp.DecodeUdp(id, dlc, data, udpFrame);
-		
-		//udp.send(data, 15730, "192.168.0.2");
+		sendTCP(udpFrame, 0, udpFrame.length);
+    */
 
 	}
 
-	public void sendToAzure(GetCan DForAzure, LinkedList payload, EventHubClient ehClient, ScheduledExecutorService executorService) throws EventHubException {
+	public static void sendToAzure(GetCan DForAzure, EventHubClient ehClient, ScheduledExecutorService executorService) throws EventHubException, UnsupportedEncodingException {
 		//----SEND JSON FORMAT TO AZURE EVENTHUB----
 		try{
 			System.out.println("\t---PayloadJSON output---");
-
+            String payload = "";
 
 			for(int i = 0; i<DForAzure.jsonPayload.size(); i++){ //ec.jsonPayload.size()
-				payload = DForAzure.payload.get(i);
+                payload  = DForAzure.payload.get(i);
 
-						 //(LinkedList <String>) DForAzure.jsonPayload.get(i);
+				//(LinkedList <String>) DForAzure.jsonPayload.get(i);
 				System.out.println("@ " + payload);
 				byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8.name());
 				EventData sendEvent = EventData.create(payloadBytes);
@@ -198,6 +169,38 @@ public class CanMain {
 		}
 
 	}
+    //----SEND TO MSSQL----
+	public static void sendToMSSQL(GetCan DForSQL, String connectionUrl) {
+
+        // create DateFormatter for the right format of date for SQLServer.
+        DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        Date date = new Date();
+
+        try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
+            for (int i = 0; i < DForSQL.payload.size(); i++) {
+                String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], "
+                        + "[TIME_STAMP], [DATASET], [DELIMITER])"
+                        + "VALUES ('STEAMDATA', '"
+                        + sdf.format(date).toString() + "','"
+                        + sdf.format(date).toString() + "','"
+                        + DForSQL.payload.get(i)
+                        + "', ';')";
+                System.out.println("SQL: " + SQL);
+                //ResultSet rs =
+                try {
+                    stmt.executeUpdate(SQL);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+        // Handle any errors that may have occurred.
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 	/**************************************************************************************
 	 * SEND CAN MESSAGE
@@ -308,7 +311,6 @@ public class CanMain {
 		    
 		    if (len > 0) {
 		    	dos.write(udpFrame, start, len);
-		    	
 		    }
 		    
 		    socket.close();

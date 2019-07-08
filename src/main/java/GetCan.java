@@ -37,7 +37,7 @@ public class GetCan extends Thread{
 	String resultJSON = "";
 	LinkedList<String> payload = new LinkedList<String>();
 	ArrayList<String> SQLstment = new ArrayList<String>();
-	public LinkedList<String> jsonPayload = new LinkedList<String>();
+	LinkedList<String> jsonPayload = new LinkedList<String>();
 
 	@Override
 	//Starts all the methods,
