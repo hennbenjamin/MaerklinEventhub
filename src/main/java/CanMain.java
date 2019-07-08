@@ -1,26 +1,21 @@
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
 import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
-import com.microsoft.sqlserver.jdbc.*;
-import java.sql.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Scanner;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,7 +35,6 @@ public class CanMain {
 
 		String ipAdress = "192.168.0.2";
 
-		//Scanner in = new Scanner(System.in);
 		//We will use this variable later to injest data into eventhub
 		String payload = "";
 
@@ -106,12 +100,12 @@ public class CanMain {
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to send Data
-		sendCanToCS3(ipAdress, 1);
+		sendCanToCS3(ipAdress, 10);
         DForSQL.stopListener();
+		DForAzure.stopListener();
 
-
-		//----UNCOMMENT TO SEND TO MSSQL----
-		// Create a variable for the connection string.
+		//----SEND TO MSSQL----
+		// create DateFormatter for the right format of date for SQLServer.
 		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 		Date date = new Date();
 
@@ -141,74 +135,29 @@ public class CanMain {
 		}
 
 
-		//----UNCOMMENT TO SEND JSON FORMAT FILES----
-		try{
-			System.out.println("\t---PayloadJSON output---");
 
-
-			for(int i = 0; i<DForAzure.jsonPayload.size(); i++){ //ec.jsonPayload.size()
-				payload = DForAzure.jsonPayload.get(i);
-				System.out.println("@ " + payload);
-				byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8.name());
-				EventData sendEvent = EventData.create(payloadBytes);
-
-				// Send - not tied to any partition
-				// Event Hubs service will round-robin the events across all Event Hubs partitions.
-				// This is the recommended & most reliable way to send to Event Hubs.
-				ehClient.sendSync(sendEvent);
-
-			}
-	    }finally {
-			ehClient.closeSync();
-			executorService.shutdown();
-        }
 
 
 
 		//char[] M_CAN_PING_CS2 = { 0x00, 0x30, 0x47, 0x11, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x08, 0xff, 0xff };
-					
-//		byte[] udpFrame = new byte[13];
-//		char[] data = new char[8];
-//		int uid = 6168;
-//		char response = 0; 
-//		char command = 0; 
-//		char prio = 0; 
-//		char dlc = 5; 
-//		int[] testFrame = new int[13];
-//		
-//		TestSend send = new TestSend();
-//		
-//		udpFrame = send.getSpeed();
-		//udpFrame = send.go();
-		//udpFrame = send.setSpeed(60);
-		//udpFrame = send.stopAll();
-//		sendTCP(udpFrame, 0, udpFrame.length);
-		
-		//udpFrame = send.setDirection(3);
-		//sendTCP(udpFrame, 0, udpFrame.length);
-		
-//		udpFrame = send.stopAll();
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setDirection(3);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		
-//		udpFrame = send.setSpeed(80);
-//		sendTCP(udpFrame, 0, udpFrame.length);
-//		TimeUnit.SECONDS.sleep(1);
-//		int cargoId = 0x4006;
-//
-//		udpFrame = send.setSpeed(50);
 
-		//sendTCP(udpFrame, 0, udpFrame.length);
-		//udpFrame = constructCan(udp, udpFrame, data, uid, response, command, prio, dlc);
+		byte[] udpFrame = new byte[13];
+		char[] data = new char[8];
+		int uid = 6168;
+		char response = 0;
+		char command = 0;
+		char prio = 0;
+		char dlc = 5;
+		int[] testFrame = new int[13];
+
+		TestSend send = new TestSend();
+		udpFrame = send.setOil();
+		sendTCP(udpFrame, 0, udpFrame.length);
 		
-//		System.out.println("udpLength: " + udpFrame.length);
-//		for (int i = 0; i < udpFrame.length; i++) {
-//			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-//		}
+		System.out.println("udpLength: " + udpFrame.length);
+		for (int i = 0; i < udpFrame.length; i++) {
+			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
+		}
 //		
 //		sendTCP(udpFrame, 0, udpFrame.length);
 //		TimeUnit.SECONDS.sleep(1);
@@ -223,6 +172,32 @@ public class CanMain {
 
 	}
 
+	public void sendToAzure(GetCan DForAzure, LinkedList payload, EventHubClient ehClient, ScheduledExecutorService executorService) throws EventHubException {
+		//----SEND JSON FORMAT TO AZURE EVENTHUB----
+		try{
+			System.out.println("\t---PayloadJSON output---");
+
+
+			for(int i = 0; i<DForAzure.jsonPayload.size(); i++){ //ec.jsonPayload.size()
+				payload = DForAzure.payload.get(i);
+
+						 //(LinkedList <String>) DForAzure.jsonPayload.get(i);
+				System.out.println("@ " + payload);
+				byte[] payloadBytes = payload.getBytes(StandardCharsets.UTF_8.name());
+				EventData sendEvent = EventData.create(payloadBytes);
+
+				// Send - not tied to any partition
+				// Event Hubs service will round-robin the events across all Event Hubs partitions.
+				// This is the recommended & most reliable way to send to Event Hubs.
+				ehClient.sendSync(sendEvent);
+
+			}
+		}finally {
+			ehClient.closeSync();
+			executorService.shutdown();
+		}
+
+	}
 
 	/**************************************************************************************
 	 * SEND CAN MESSAGE
@@ -283,47 +258,6 @@ public class CanMain {
 
 		}
 	}
-	
-
-	/**************************************************************************************
-	 * CONSTRUCT CAN MESSAGE
-	 ***************************************************************************************/
-	/*public static byte[] constructCan (SendCan udp, byte[] udpFrame, char[] data, int uid, char response, char command, char prio, char dlc) {
-		
-		//UDP FRAME HAS TO BE the length of 13
-		//6168 entspricht hexadezimal 0x1818 --> liegt damit im märklin definierten wertebereich für die UID 	
-		int canId = 6168; 
-		System.out.println("ID raw: " + uid);
-		//DLC MAXIMUL 8 because that is the max of bytes which is usable
-			
-		//data = new char[dlc];
-		System.out.println("Data.length: " + data.length);
-		for (int i = 0; i < data.length; i++) {
-			//#if (i == 4)
-				//data[4] = 0011;
-			data[i] = 0;
-		}
-		int hash = udp.CalcHash(uid);
-		System.out.println("hash: " + hash);
-		
-		//int encodeIdd = udp.EncodeId(canId, hash, response,command, prio);
-		
-		int encodeId = udp.EncodeId(canId, hash, response, command, prio);
-		System.out.println("ID encoded: " + uid);
-						
-		udpFrame = udp.EncodeUdp(encodeId, dlc, data);
-		
-		//show the udp frame at cmd
-		for (int i = 0; i < udpFrame.length; i++) {
-			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-		}
-		byte[] udpFr = new byte[13];
-		
-		udpFr = udpFrame;
-		return udpFr;
-	}
-	*/
-
 
 	/*************************************************************************************** 
 	 * PING HOST
@@ -343,7 +277,6 @@ public class CanMain {
 		
 	}
 
-
 	/*************************************************************************************** 
 	 * SEND UDP-FRAME via UDP to HOST 
 	 ***************************************************************************************/
@@ -360,7 +293,6 @@ public class CanMain {
 			e.printStackTrace();
 		}
 	}
-
 
 	/*************************************************************************************** 
 	 * SEND TCP-FRAME via TCP to HOST 

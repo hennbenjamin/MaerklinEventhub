@@ -33,12 +33,11 @@ public class GetCan extends Thread{
 	private Date startTime = null;
 	String dataset = "";
 	String resource = "water";
-	String header;
 	String resultCSV = "";
 	String resultJSON = "";
 	LinkedList<String> payload = new LinkedList<String>();
 	ArrayList<String> SQLstment = new ArrayList<String>();
-	LinkedList<String> jsonPayload = new LinkedList<String>();
+	public LinkedList<String> jsonPayload = new LinkedList<String>();
 
 	@Override
 	//Starts all the methods,
@@ -83,9 +82,6 @@ public class GetCan extends Thread{
 			tcp_inputStream = tcp_socket.getInputStream();
 			tcp_inputStream.read(bytes);
 			byte test = (byte)tcp_socket.getInputStream().read();
-			header = "RowCount;Datetime;Lokid;Resource;Value(in Java);Value(in CS3);RoundCount";
-			System.out.println(header);
-			payload.add(header);
 			
 		} catch (UnknownHostException e) {
 		// TODO Auto-generated catch block
@@ -128,6 +124,11 @@ public class GetCan extends Thread{
 
 			water.append("[000e0f72:7][00,00,40,07,04,ed,04,00]");
 
+			//TIMER STARTEN
+			long timeStart = System.currentTimeMillis();
+			long timeEnd;
+
+
 
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				if(!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,04,[A-F0-9]{2}.)", hexFormatted) &&
@@ -160,7 +161,8 @@ public class GetCan extends Thread{
 
 
 
-
+					timeEnd = System.currentTimeMillis();
+					System.out.println("WaterTimer: " + (timeEnd - timeStart));
 					rowCount++;
 				}
 			}
@@ -191,6 +193,8 @@ public class GetCan extends Thread{
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
 					System.out.println(resultCSV);
+					timeEnd = System.currentTimeMillis();
+					System.out.println("OilTimer: " + (timeEnd - timeStart));
 					rowCount++;
 				}
 			}
@@ -221,6 +225,8 @@ public class GetCan extends Thread{
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
 					System.out.println(resultCSV);
+					timeEnd = System.currentTimeMillis();
+					System.out.println("SandTimer: " + (timeEnd - timeStart));
 					rowCount++;
 				}
 			}
@@ -228,6 +234,8 @@ public class GetCan extends Thread{
 			//if()
 
 			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
+
+			//GET RoundCount from contact track Every Round --> RoundCount++
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				rowCount++;

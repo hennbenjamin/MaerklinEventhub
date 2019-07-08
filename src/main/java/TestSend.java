@@ -339,7 +339,7 @@ public class TestSend extends Thread{
 		}
 		return udpFrame;	
 	}
-	
+
 	/**
 	 * @return udpFrame
 	 * The MAX SPEEED 1023!!!
@@ -498,7 +498,57 @@ public class TestSend extends Thread{
 		}
 		return udpFrame;
 	}
-	
+
+	/**
+	 //* @param oilAmount
+	 * The speed that we want to set up
+	 * @return udpFrame
+	 */
+	public byte[] setOil () { //int oilAmount
+
+		//dlc = 6 mandatory to set the speed!
+		dlc = 6;
+		data = new char[dlc];
+		udpFrame[0] = (byte) prio ;
+		udpFrame[1] = (byte) 8;
+		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
+		udpFrame[3] = (byte) 114;
+		udpFrame[4] = (byte) dlc;
+
+		String s = intToHex(255);
+		System.out.println("hexString :" + s);
+		byte[] hexData = hexStringToByteArray(s);
+
+		for (int i = 0; i < data.length; i++) {
+			udpFrame[5+i] = (byte)data[i];
+		}
+
+		for (int i = 0; i < data.length; i++) {
+
+			if (i == 2) {
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
+			}
+			if (i == 3) {
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
+			}
+			if (i == 4) {
+				udpFrame[5+i] = (byte) 8;
+			}
+			if(i == 5) {
+				udpFrame[5+i] = (byte) 237;
+			}
+			if(i == 6) {
+				udpFrame[5+i] = (byte) 1;
+			}
+
+			if (i == 7 && hexData.length == 2) {
+				//08ED01
+				udpFrame[5+i] = (byte) hexData[1] ;
+			}
+
+		}
+		return udpFrame;
+	}
 	
 	/**
 	 * @param direction
