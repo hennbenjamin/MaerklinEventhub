@@ -124,12 +124,6 @@ public class GetCan extends Thread{
 
 			water.append("[000e0f72:7][00,00,40,07,04,ed,04,00]");
 
-			//TIMER STARTEN
-			long timeStart = System.currentTimeMillis();
-			long timeEnd;
-
-
-
 			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				if(!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,04,[A-F0-9]{2}.)", hexFormatted) &&
 						!Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,00,40,07,04,ED,01,[A-F0-9]{2}.)", hexFormatted)) {
@@ -156,13 +150,13 @@ public class GetCan extends Thread{
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
-					System.out.println(resultCSV);
+					//System.out.println(resultCSV);
 
 
 
 
-					timeEnd = System.currentTimeMillis();
-					System.out.println("WaterTimer: " + (timeEnd - timeStart));
+
+					//System.out.println("WaterTimer: " + (timeEnd - timeStart));
 					rowCount++;
 				}
 			}
@@ -192,9 +186,7 @@ public class GetCan extends Thread{
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
-					System.out.println(resultCSV);
-					timeEnd = System.currentTimeMillis();
-					System.out.println("OilTimer: " + (timeEnd - timeStart));
+					//System.out.println(resultCSV);
 					rowCount++;
 				}
 			}
@@ -224,9 +216,7 @@ public class GetCan extends Thread{
 					/*SQLstment.add("INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], " +
 							"[TIME_STAMP], [DATASET], [DELIMITER])\n" +
 							"VALUES (STEAMDATA, " + startTime + ", " + sdf.format(date) + ", " + dataset + ", " + ";");*/
-					System.out.println(resultCSV);
-					timeEnd = System.currentTimeMillis();
-					System.out.println("SandTimer: " + (timeEnd - timeStart));
+					//System.out.println(resultCSV);
 					rowCount++;
 				}
 			}
@@ -250,6 +240,11 @@ public class GetCan extends Thread{
 			//}
 		}
 		closeConn(); 
+	}
+
+	//it starts conn()
+	public void startListener() {
+		stop = false;
 	}
 
 	//it stops conn()

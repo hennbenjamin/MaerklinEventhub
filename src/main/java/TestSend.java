@@ -510,9 +510,9 @@ public class TestSend extends Thread{
 		dlc = 8;
 		data = new char[dlc];
 		udpFrame[0] = (byte) prio ;
-		udpFrame[1] = (byte) 8;
+		udpFrame[1] = (byte) 16;
 		udpFrame[2] = (byte) 15; // >> 8;//(uid >> 8);
-		udpFrame[3] = (byte) 167;
+		udpFrame[3] = (byte) 114;
 		udpFrame[4] = (byte) dlc;
 
 		String s = intToHex(255);
@@ -538,10 +538,10 @@ public class TestSend extends Thread{
 				udpFrame[5+i] = (byte) 237;
 			}
 			if(i == 6) {
-				udpFrame[5+i] = (byte) 1;
+				udpFrame[5+i] = (byte) 85;
 			}
 			if(i == 7) {
-				udpFrame[5+i] = (byte) 100;
+				udpFrame[5+i] = (byte) 0;
 			}
 /*			if (i == 7 && hexData.length == 2) {
 				//08ED01

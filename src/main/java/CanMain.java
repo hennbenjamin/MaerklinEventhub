@@ -32,15 +32,15 @@ public class CanMain {
 	protected static int coaches;
 
 
-	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
 
+	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
 		String ipAdress = "192.168.0.2";
 
 		//We will use this variable later to injest data into eventhub
 		String payload = "";
 
 		//We'll use this variable to set the datatype for the sql server data
-		String dType = "";
+		String dType = "STEAMDATA";
 
 		int iterations;			//Number of iterations that we will perform on the resources status.
 		//final Gson gson = new GsonBuilder().create();
@@ -94,33 +94,77 @@ public class CanMain {
 		coaches = in.nextInt();
 */
 		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
-		GetCan DForSQL = new GetCan(ipAdress,15731);
-        DForSQL.start();
+		//GET Data for SQL Server
 
-		GetCan DForAzure = new GetCan(ipAdress, 15731);
-        DForAzure.start();
+
+        //GET Data for Azure
+		//GetCan DForAzure = new GetCan(ipAdress, 15731);
+        //DForAzure.start();
 
 		//uncomment to send Data
 		send = new TestSend();
 		//uncomment to GET Data
-		    sendCanToCS3(ipAdress, 10);
-            DForSQL.stopListener();
-		    DForAzure.stopListener();
-
-		sendToAzure(DForAzure,ehClient,executorService);
-		sendToMSSQL(DForSQL, connectionUrl);
+		//sendCanToCS3(ipAdress, connectionUrl, dType);
 
 
+		byte[] udpFrame = new byte[13];
+		String log = "";
+
+		try {
+
+			byte[] packatData;
+			DatagramSocket ds = new DatagramSocket(15731);
+			DatagramSocket dsReceive = new DatagramSocket(15730);
+			InetAddress ia;
+			InetAddress ib;
+			ia = InetAddress.getByName("192.168.0.2");
+			ib = InetAddress.getByName("192.168.0.104");
+			int port = 15731;
+			udpFrame = send.getSpeed();
+			int i = 0;
+
+
+			//DatagramPacket sendpacket = new DatagramPacket(testData, testData.length);
+
+			while (true) {
+				System.out.println("I: " + i);
+				DatagramPacket sendPacket = new DatagramPacket( udpFrame, udpFrame.length, ia, 15731 );
+				ds.send( sendPacket );
+				// Auf Anfrage warten
+				sendPacket = new DatagramPacket( new byte[13], 13, ib, 15730 );
+				dsReceive.receive( sendPacket );
+
+				// Empfänger auslesen
+				InetAddress address = sendPacket.getAddress();
+				int         port2    = sendPacket.getPort();
+				int         len     = sendPacket.getLength();
+				byte[]      data    = sendPacket.getData();
+
+				System.out.printf( "Anfrage von %s vom Port %d mit der Länge %d:%n%s%n",
+						address, port2, len, new String( data, 0, len ) );
+
+				i++;
+			}
 
 
 
+		} catch (SocketException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 
 
+		//Send Command to CS3
+		//sendCommandToCS3();
 
 
-//SEND TO CS3
-    /*
+	}
+
+	//----Send Command to CS3----
+	public static void sendCommandToCS3 () {
+
 		byte[] udpFrame = new byte[13];
 		char[] data = new char[8];
 		int uid = 6168;
@@ -133,16 +177,17 @@ public class CanMain {
 		TestSend send = new TestSend();
 		udpFrame = send.setOil();
 
-		
+
 		System.out.println("udpLength: " + udpFrame.length);
 		for (int i = 0; i < udpFrame.length; i++) {
 			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 		}
 		sendTCP(udpFrame, 0, udpFrame.length);
-    */
+
 
 	}
 
+	//----Send received Data from CAN to Azure----
 	public static void sendToAzure(GetCan DForAzure, EventHubClient ehClient, ScheduledExecutorService executorService) throws EventHubException, UnsupportedEncodingException {
 		//----SEND JSON FORMAT TO AZURE EVENTHUB----
 		try{
@@ -169,8 +214,8 @@ public class CanMain {
 		}
 
 	}
-    //----SEND TO MSSQL----
-	public static void sendToMSSQL(GetCan DForSQL, String connectionUrl) {
+    //----Send received Data from CAN to MS SQL----
+	public static void sendToMSSQL(GetCan DForSQL, String connectionUrl, String dType) {
 
         // create DateFormatter for the right format of date for SQLServer.
         DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -180,7 +225,7 @@ public class CanMain {
             for (int i = 0; i < DForSQL.payload.size(); i++) {
                 String SQL = "INSERT INTO [dbo].[T_RESOURCES_USAGE_DATASET] ([DATATYPE], [RECORDING_START_TIME], "
                         + "[TIME_STAMP], [DATASET], [DELIMITER])"
-                        + "VALUES ('STEAMDATA', '"
+                        + "VALUES ('" + dType + "','"
                         + sdf.format(date).toString() + "','"
                         + sdf.format(date).toString() + "','"
                         + DForSQL.payload.get(i)
@@ -206,7 +251,7 @@ public class CanMain {
 	 * SEND CAN MESSAGE
 	 * @throws UnknownHostException 
 	 ***************************************************************************************/
-	public static void sendCanToCS3 (String ipAdress, int iterations) throws UnknownHostException {
+	public static void sendCanToCS3 (String ipAdress, String connectionUrl, String dType) throws UnknownHostException, InterruptedException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
 		//SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
@@ -222,44 +267,55 @@ public class CanMain {
 		int cargoId = 0x4007;
 
 		//If the variable is setted up as -1, Max Limit = 500
-		if(iterations == -1) iterations = 500;
+		//if(iterations == -1) iterations = 500;
+		GetCan DForSQL = new GetCan(ipAdress,15731);
+		DForSQL.start();
+		byte[] testData = new byte[ 13 ];
+		String log = "";
 
-		for (int i = 0; i<iterations; i++) {
+
+
+		//DForSQL.stopListener();
+		//DForAzure.stopListener();
+		//sendToAzure(DForAzure,ehClient,executorService);
+
+
+		//sendTCP(udpFrame, 0, udpFrame.length);
+
+/*		while (true) {
+			long millis = System.currentTimeMillis();
+			DForSQL.startListener();
 
 			//ask status of water
 			udpFrame = send.getWater();
 			sendTCP(udpFrame, 0, udpFrame.length);
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			//sendToMSSQL(DForSQL, connectionUrl, dType);
+			//DForSQL.stopListener();
 
 			//ask status of oil
 			udpFrame = send.getOil();
 			sendTCP(udpFrame, 0, udpFrame.length);
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			//sendToMSSQL(DForSQL, connectionUrl, dType);
+			//DForSQL.stopListener();
 
 			//ask status of sand
 			udpFrame = send.getSand();
 			sendTCP(udpFrame, 0, udpFrame.length);
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			//sendToMSSQL(DForSQL, connectionUrl, dType);
+			//DForSQL.stopListener();
+
+
+
 
 			/////////////////DEBUG PRINT UDP-Package/////////////////
-/*		System.out.println("udpLength: " + udpFrame.length);
-		for (int i = 0; i < udpFrame.length; i++) {
-			System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
-}*/
-
-		}
+			System.out.println("udpLength: " + udpFrame.length);
+			for (int i = 0; i < udpFrame.length; i++) {
+				System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
+			}
+			sendToMSSQL(DForSQL, connectionUrl, dType);
+			DForSQL.stopListener();
+			Thread.sleep(1000 - millis % 1000);
+		}*/
 	}
 
 	/*************************************************************************************** 
