@@ -226,7 +226,7 @@ public class GetCan extends Thread{
 			//[0023a706:8]    r 17 [00,01,00,02,00,01,09,7e]
 
 			//GET RoundCount from contact track Every Round --> RoundCount++
-			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,02,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
+			if (Pattern.matches("(.[A-F0-9]{8}.[A-F0-9]{2}..00,01,00,09,00,01,[A-F0-9]{2},[A-F0-9]{2}.)", hexFormatted)) {
 				String lokId = hexFormatted.substring(20 , 25).replace(",","");
 				rowCount++;
 				RoundCount++;

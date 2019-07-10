@@ -125,7 +125,7 @@ public class CanMain {
 
 			//DatagramPacket sendpacket = new DatagramPacket(testData, testData.length);
 
-			while (true) {
+
 				System.out.println("I: " + i);
 				DatagramPacket sendPacket = new DatagramPacket( udpFrame, udpFrame.length, ia, 15731 );
 				System.out.println("1");
@@ -144,11 +144,16 @@ public class CanMain {
 				int         len     = sendPacket.getLength();
 				byte[]      data    = sendPacket.getData();
 
-				System.out.printf( "Anfrage von %s vom Port %d mit der Länge %d:%n%s%n",
-						address, port2, len, new String( data, 0, len ) );
+				for (int j = 0; j < data.length; j++) {
+					System.out.println("data[" + j + "]: " + data[j]);
+					/*System.out.printf( "Anfrage von %s vom Port %d mit der Länge %d:%n%s%n",
+							address, port2, len, new String( data, 0, len ) );
+					*/
+				}
+
 
 				i++;
-			}
+
 
 		} catch (SocketException e) {
 			e.printStackTrace();

@@ -366,10 +366,10 @@ public class TestSend extends Thread{
 		for (int i = 0; i < data.length; i++) {
 					
 			if (i == 2) {
-				udpFrame[5+i] = (byte)getFirstByteOfId(cargoId);
+				udpFrame[5+i] = (byte)getFirstByteOfId(steamId);
 			}
 			if (i == 3) {
-				udpFrame[5+i] = (byte)getSecondByteOfId(cargoId);
+				udpFrame[5+i] = (byte)getSecondByteOfId(steamId);
 			}
 //			if (i == 4 && hexData.length == 2) {
 //				udpFrame[5+i] = hexData[1];		
