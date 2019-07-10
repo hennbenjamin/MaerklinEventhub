@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 //import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
@@ -33,68 +34,12 @@ public class CanMain {
 
 
 	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException{
-		String ipAdress = "192.168.0.2";
-
-		//We will use this variable later to injest data into eventhub
-		String payload = "";
-
-		//We'll use this variable to set the datatype for the sql server data
-		String dType = "STEAMDATA";
-
-		int iterations;			//Number of iterations that we will perform on the resources status.
-		//final Gson gson = new GsonBuilder().create();
-								//"jdbc:sqlserver://<server>:<port>;databaseName=AdventureWorks;user=<user>;password=<password>"
-		try {
-			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
-
-
-		//----UNCOMMENT TO CONNECT TO EVENTHUB----
-		//This configures the log4j framework/package, necessary to send data to eventhub
-		BasicConfigurator.configure();
-
-		//Credentials to connect to eventhub
-		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
-				.setNamespaceName("BIAcademyNS")
-				.setEventHubName("eventhubmarklinsteamlok")
-				.setSasKeyName("RootManageSharedAccessKey")
-				.setSasKey("jiuer6fxPoEnrkrxzVwWVdRi1qw2+5A3rAoevEsiEVs=");
-
-		//final Gson gson = new GsonBuilder().create();
-
-		// The Executor handles all asynchronous tasks and this is passed to the EventHubClient instance.
-		// This enables the user to segregate their thread pool based on the work load.
-		// This pool can then be shared across multiple EventHubClient instances.
-		// The following sample uses a single thread executor, as there is only one EventHubClient instance,
-		// handling different flavors of ingestion to Event Hubs here.
-		//final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
-
-		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
-		// It is always a best practice to reuse these instances. The following sample shows this.
-		//final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
-
 
 
 		/*//START USERINTERFACE
 		final UserInterfaceChart uic = new UserInterfaceChart();
 		uic.go();
 		*/
-
-
-
-
-		//Temporary, the program is controlled by iterations. Tip: -1 = Many iterations.
-/*		System.out.print("How many iterations do you want to perform?");
-		iterations = in.nextInt();
-		System.out.println("How many coaches are attached?");
-		coaches = in.nextInt();
-*/
-		//It connects to the CS3, starts to "listen" to the data streamed by the CS3 and filter the resources.
-		//GET Data for SQL Server
-
 
         //GET Data for Azure
 		//GetCan DForAzure = new GetCan(ipAdress, 15731);
@@ -105,16 +50,11 @@ public class CanMain {
 		//uncomment to GET Data
 		//sendCanToCS3(ipAdress, connectionUrl, dType);
 
-
 		byte[] udpFrame = new byte[13];
 		String log = "";
 
-
-
-
 		//Send Command to CS3
 		//sendCommandToCS3();
-
 
 	}
 
@@ -144,11 +84,36 @@ public class CanMain {
 	}
 
 	//----Send received Data from CAN to Azure----
-	public static void sendToAzure(GetCan DForAzure, EventHubClient ehClient, ScheduledExecutorService executorService) throws EventHubException, UnsupportedEncodingException {
+	public static void sendToAzure(GetCan DForAzure) throws EventHubException, IOException {
+		//----UNCOMMENT TO CONNECT TO EVENTHUB----
+		//This configures the log4j framework/package, necessary to send data to eventhub
+		BasicConfigurator.configure();
+
+		//Credentials to connect to eventhub
+		final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
+				.setNamespaceName("BIAcademyNS")
+				.setEventHubName("eventhubmarklinsteamlok")
+				.setSasKeyName("RootManageSharedAccessKey")
+				.setSasKey("jiuer6fxPoEnrkrxzVwWVdRi1qw2+5A3rAoevEsiEVs=");
+
+		// The Executor handles all asynchronous tasks and this is passed to the EventHubClient instance.
+		// This enables the user to segregate their thread pool based on the work load.
+		// This pool can then be shared across multiple EventHubClient instances.
+		// The following sample uses a single thread executor, as there is only one EventHubClient instance,
+		// handling different flavors of ingestion to Event Hubs here.
+		final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+
+		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
+		// It is always a best practice to reuse these instances. The following sample shows this.
+		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
+
+
 		//----SEND JSON FORMAT TO AZURE EVENTHUB----
 		try{
 			System.out.println("\t---PayloadJSON output---");
-            String payload = "";
+
+			//We will use this variable later to injest data into eventhub
+			String payload = "";
 
 			for(int i = 0; i<DForAzure.jsonPayload.size(); i++){ //ec.jsonPayload.size()
                 payload  = DForAzure.payload.get(i);
@@ -171,7 +136,15 @@ public class CanMain {
 
 	}
     //----Send received Data from CAN to MS SQL----
-	public static void sendToMSSQL(GetCan DForSQL, String connectionUrl, String dType) {
+	public static void sendToMSSQL(GetCan DForSQL) {
+		try {
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		String connectionUrl = "jdbc:sqlserver://edu.hdm-server.eu;databaseName=TRAIN_IOTHUB;user=TRAIN_DBA;password=Password123"; //ports: 1432. 1433. 1434
+		String dType = "STEAMDATA";
+		//String payload = "";
 
         // create DateFormatter for the right format of date for SQLServer.
         DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -268,7 +241,7 @@ public class CanMain {
 			for (int i = 0; i < udpFrame.length; i++) {
 				System.out.println("udpFrame["+i+"]: " + udpFrame[i]);
 			}
-			sendToMSSQL(DForSQL, connectionUrl, dType);
+			sendToMSSQL(DForSQL);
 			DForSQL.stopListener();
 			Thread.sleep(1000 - millis % 1000);
 		}
