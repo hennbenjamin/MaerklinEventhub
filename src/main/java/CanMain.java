@@ -5,24 +5,23 @@ import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import org.apache.log4j.BasicConfigurator;
 
-import java.io.UnsupportedEncodingException;
-import java.sql.*;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+
 //import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-import java.nio.charset.StandardCharsets;
 
 
 public class CanMain {
@@ -33,7 +32,7 @@ public class CanMain {
 
 
 
-	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException, IOException {
+	public static void main(String[] args) throws IOException, InterruptedException, EventHubException, ExecutionException, InterruptedException{
 		String ipAdress = "192.168.0.2";
 
 		//We will use this variable later to injest data into eventhub
@@ -71,11 +70,11 @@ public class CanMain {
 		// This pool can then be shared across multiple EventHubClient instances.
 		// The following sample uses a single thread executor, as there is only one EventHubClient instance,
 		// handling different flavors of ingestion to Event Hubs here.
-		final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+		//final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
 
 		// Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
 		// It is always a best practice to reuse these instances. The following sample shows this.
-		final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
+		//final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
 
 
 
@@ -129,13 +128,18 @@ public class CanMain {
 			while (true) {
 				System.out.println("I: " + i);
 				DatagramPacket sendPacket = new DatagramPacket( udpFrame, udpFrame.length, ia, 15731 );
+				System.out.println("1");
 				ds.send( sendPacket );
+				System.out.println("2");
 				// Auf Anfrage warten
 				sendPacket = new DatagramPacket( new byte[13], 13, ib, 15730 );
 				dsReceive.receive( sendPacket );
+				System.out.println("3");
+				//comment
 
 				// Empfänger auslesen
 				InetAddress address = sendPacket.getAddress();
+				System.out.println("4");
 				int         port2    = sendPacket.getPort();
 				int         len     = sendPacket.getLength();
 				byte[]      data    = sendPacket.getData();
@@ -145,8 +149,6 @@ public class CanMain {
 
 				i++;
 			}
-
-
 
 		} catch (SocketException e) {
 			e.printStackTrace();
