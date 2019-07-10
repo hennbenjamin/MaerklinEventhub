@@ -109,57 +109,6 @@ public class CanMain {
 		byte[] udpFrame = new byte[13];
 		String log = "";
 
-		try {
-
-			byte[] packatData;
-			DatagramSocket ds = new DatagramSocket(15731);
-			DatagramSocket dsReceive = new DatagramSocket(15730);
-			InetAddress ia;
-			InetAddress ib;
-			ia = InetAddress.getByName("192.168.0.2");
-			ib = InetAddress.getByName("192.168.0.104");
-			int port = 15731;
-			udpFrame = send.getSpeed();
-			int i = 0;
-
-
-			//DatagramPacket sendpacket = new DatagramPacket(testData, testData.length);
-
-
-				System.out.println("I: " + i);
-				DatagramPacket sendPacket = new DatagramPacket( udpFrame, udpFrame.length, ia, 15731 );
-				System.out.println("1");
-				ds.send( sendPacket );
-				System.out.println("2");
-				// Auf Anfrage warten
-				sendPacket = new DatagramPacket( new byte[13], 13, ib, 15730 );
-				dsReceive.receive( sendPacket );
-				System.out.println("3");
-				//comment
-
-				// Empfänger auslesen
-				InetAddress address = sendPacket.getAddress();
-				System.out.println("4");
-				int         port2    = sendPacket.getPort();
-				int         len     = sendPacket.getLength();
-				byte[]      data    = sendPacket.getData();
-
-				for (int j = 0; j < data.length; j++) {
-					System.out.println("data[" + j + "]: " + data[j]);
-					/*System.out.printf( "Anfrage von %s vom Port %d mit der Länge %d:%n%s%n",
-							address, port2, len, new String( data, 0, len ) );
-					*/
-				}
-
-
-				i++;
-
-
-		} catch (SocketException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
 
 
@@ -258,7 +207,7 @@ public class CanMain {
 	 * SEND CAN MESSAGE
 	 * @throws UnknownHostException 
 	 ***************************************************************************************/
-	public static void sendCanToCS3 (String ipAdress, String connectionUrl, String dType) throws UnknownHostException, InterruptedException {
+	public static void sendCanToCS3 (String ipAdress, String connectionUrl, String dType) throws IOException, InterruptedException {
 		InetAddress addresse = InetAddress.getByName(ipAdress);
 		//SendCan udp = new SendCan();
 		//String ipAdress = "192.168.0.2";
@@ -289,7 +238,7 @@ public class CanMain {
 
 		//sendTCP(udpFrame, 0, udpFrame.length);
 
-/*		while (true) {
+		while (trainRunning()) {
 			long millis = System.currentTimeMillis();
 			DForSQL.startListener();
 
@@ -322,8 +271,53 @@ public class CanMain {
 			sendToMSSQL(DForSQL, connectionUrl, dType);
 			DForSQL.stopListener();
 			Thread.sleep(1000 - millis % 1000);
-		}*/
+		}
 	}
+    /***************************************************************************************
+    * GET SPEED OF TRAIN
+    ***************************************************************************************/
+    public static boolean trainRunning() throws IOException {
+		boolean result = false;
+        byte[] udpFrame = new byte[13];
+        byte[] packatData;
+        DatagramSocket ds = new DatagramSocket(15731);
+        DatagramSocket dsReceive = new DatagramSocket(15730);
+        InetAddress ia = InetAddress.getByName("192.168.0.2");
+        InetAddress ib = InetAddress.getByName("192.168.0.104");
+        int port = 15731;
+        udpFrame = send.getSpeed();
+        int i = 0;
+
+
+        //DatagramPacket sendpacket = new DatagramPacket(testData, testData.length);
+
+
+        //System.out.println("I: " + i);
+        DatagramPacket sendPacket = new DatagramPacket( udpFrame, udpFrame.length, ia, 15731 );
+        //System.out.println("1");
+        ds.send( sendPacket );
+        //System.out.println("2");
+        // Auf Anfrage warten
+        sendPacket = new DatagramPacket( new byte[13], 13, ib, 15730 );
+        dsReceive.receive( sendPacket );
+        //System.out.println("3");
+        //comment
+
+        // Empfänger auslesen
+        InetAddress address = sendPacket.getAddress();
+        //System.out.println("4");
+        int         port2    = sendPacket.getPort();
+        int         len     = sendPacket.getLength();
+        byte[]      data    = sendPacket.getData();
+
+        if (data[9] != 0 && data[10] != 0) {
+        	return result = true;
+		} else {
+
+			return result = false;
+		}
+
+    }
 
 	/*************************************************************************************** 
 	 * PING HOST
